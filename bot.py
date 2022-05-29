@@ -15,6 +15,7 @@ async def on_startup(dispatcher):
                         level=logging.INFO,
                         # level=logging.DEBUG,  # Можно заменить на другой уровень логгирования.
                         )
+    print('Bot on startup!')
     mysql_db.mysql_start()
 
 
