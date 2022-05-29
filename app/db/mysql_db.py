@@ -1,23 +1,6 @@
-import pymysql.cursors
-from app.services.config import load_config
+from loader import conn
 
-config = load_config(".env")
 
-def mysql_start():
-    conn = pymysql.connect(
-            host=config.db.host,
-            user=config.db.user,
-            password=config.db.password,
-            database=config.db.database,
-            cursorclass=pymysql.cursors.Cursor,
-            charset="utf8mb4",
-        )
-    if conn:
-        print('Database connected.')
-
-    return conn
-
-conn = mysql_start()
 """Запросы от администратора"""
 
 
