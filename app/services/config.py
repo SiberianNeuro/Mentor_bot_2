@@ -5,10 +5,10 @@ from environs import Env
 
 @dataclass
 class DbConfig:
-    host: str
-    user: str
-    password: str
-    database: str
+    db_host: str
+    db_user: str
+    db_pass: str
+    db_name: str
 
 
 @dataclass
@@ -41,10 +41,10 @@ def load_config(path: str = None):
             use_redis=env.bool("USE_REDIS"),
         ),
         db=DbConfig(
-            host=env.str("HOST"),
-            password=env.str("PASS"),
-            user=env.str("USER"),
-            database=env.str("DB_NAME")
+            db_host=env.str("DB_HOST"),
+            db_user=env.str("DB_USER"),
+            db_pass=env.str("DB_PASS"),
+            db_name=env.str("DB_NAME")
         ),
         misc=Miscellaneous()
     )
