@@ -6,8 +6,8 @@ from environs import Env
 @dataclass
 class DbConfig:
     host: str
-    password: str
     user: str
+    password: str
     database: str
 
 

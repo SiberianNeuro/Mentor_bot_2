@@ -10,7 +10,6 @@ async def is_register(obj):
     check_list = []
     for i in result:
         check_list.append(int(i[0]))
-    print(check_list)
     if obj in check_list:
         return True
     else:
