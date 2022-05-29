@@ -1,11 +1,14 @@
 import pymysql.cursors
+from app.services.config import load_config
+
+config = load_config(".env")
 
 def mysql_start():
     conn = pymysql.connect(
-            host="151.248.121.212",
-            user="test-db_usr",
-            password="Dj2n82iV",
-            database="test-db",
+            host=config.db.host,
+            user=config.db.user,
+            password=config.db.password,
+            database=config.db.database,
             cursorclass=pymysql.cursors.Cursor,
             charset="utf8mb4",
         )
