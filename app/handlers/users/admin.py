@@ -88,22 +88,25 @@ async def load_status(c: types.CallbackQuery, state: FSMContext, callback_data: 
 
 # Ловим дату переаттестации или сообщение об увольнении
 async def load_retake(m: types.Message, state: FSMContext):
-    retake_date = datetime.strptime(m.text, "%d.%m.%Y")
-    async with state.proxy() as data:
-        if m.text.lower() == 'увольнение':
+    if m.text.lower() == 'увольнение':
+        async with state.proxy() as data:
             data['retake'] = None
             await FSMAdmin.link.set()
             await m.answer('Мы почти закончили, осталась только ссылка на YouTube ⏩\n\n'
                            'Скопируй её и пришли мне')
-        else:
+
+    else:
+        try:
+            retake_date = datetime.strptime(m.text, "%d.%m.%Y")
             assert retake_date > datetime.now(), await m.answer("Нельзя указывать сегодняшнюю или прошедшую дату.")
-            try:
+            async with state.proxy() as data:
                 data['retake'] = retake_date.strftime("%Y-%m-%d")
                 await FSMAdmin.link.set()
                 await m.answer('Мы почти закончили, осталась только ссылка на YouTube ⏩\n\n'
                                'Скопируй её и пришли мне')
-            except ValueError:
-                await m.answer("Это некорректная дата. Пожалуйста, введи дату по шаблону.")
+
+        except ValueError:
+            await m.answer("Это некорректная дата. Пожалуйста, введи дату по шаблону.")
 
 
 
