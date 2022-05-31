@@ -1,14 +1,15 @@
-from datetime import datetime, timedelta
+from datetime import datetime, date
 
 from aiogram.dispatcher import FSMContext
 from aiogram import types, Dispatcher
 
+from app.utils.misc.exam_wrapper import report_wrapper, search_wrapper
 from loader import dp, bot
 
 from app.filters.admin import IsAdmin
 from app.db import mysql_db
 from app.keyboards import admin_kb
-from app.keyboards.admin_kb import get_format_keyboard, get_status_keyboard, exam_callback, get_delete_button
+from app.keyboards.admin_kb import get_format_keyboard, get_status_keyboard, exam_callback
 from app.utils.misc.states import FSMAdmin
 from app.utils.misc.file_parsing import file_parser
 
@@ -45,7 +46,8 @@ async def load_document(m: types.Message, state: FSMContext):
         data['fullname'] = source[1]
     await FSMAdmin.next()
     await m.answer(
-        f'Давай-ка посмотрим:\n\nОпрошенный стажер - {source[1]}\nА результат аттестации в баллах - {source[0]}\n\n'
+        f'Давай-ка посмотрим:\n\nОпрошенный стажер - <b>{source[1]}</b>\n'
+        f'А результат аттестации в баллах - <u>{source[0]}</u>\n\n'
         f'Если это неверно - срочно жми <b>"Отмена"</b> и перепроверяй файл!\n\n'
         f'Ну а если все в порядке - выбирай формат опроса ⬇️',
         reply_markup=get_format_keyboard()
@@ -86,12 +88,17 @@ async def load_status(c: types.CallbackQuery, state: FSMContext, callback_data: 
 
 # Ловим дату переаттестации или сообщение об увольнении
 async def load_retake(m: types.Message, state: FSMContext):
+    retake_date = datetime.strptime(m.text, "%d.%m.%Y")
     async with state.proxy() as data:
         if m.text.lower() == 'увольнение':
             data['retake'] = None
+            await FSMAdmin.link.set()
+            await m.answer('Мы почти закончили, осталась только ссылка на YouTube ⏩\n\n'
+                           'Скопируй её и пришли мне')
         else:
+            assert retake_date > datetime.now(), await m.answer("Нельзя указывать сегодняшнюю или прошедшую дату.")
             try:
-                data['retake'] = datetime.strptime(m.text, "%d.%m.%Y").strftime("%Y-%m-%d")
+                data['retake'] = retake_date.strftime("%Y-%m-%d")
                 await FSMAdmin.link.set()
                 await m.answer('Мы почти закончили, осталась только ссылка на YouTube ⏩\n\n'
                                'Скопируй её и пришли мне')
@@ -104,32 +111,9 @@ async def load_retake(m: types.Message, state: FSMContext):
 async def load_link(m: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['link'] = m.text
-        print(tuple(data.values()))
     await mysql_db.sql_add_command(state)
     read = await mysql_db.item_search(data["document"])
-    for ret in read:
-        # Ответ в личные сообщения обучатору
-        await bot.send_document(
-            m.from_user.id, ret[1],
-            caption=f'<b>{ret[2]}</b>\n'
-                    f'Формат опроса - {ret[3]}\n'
-                    f'Статус аттестации - {ret[4]}\n'
-                    f'Набрано баллов - {ret[5]}\n'
-                    f'Ссылка YT: {ret[6]}',
-            reply_markup=get_delete_button(ret[0])
-        )
-        await m.answer('Мы закончили, мы молодцы 👌', reply_markup=admin_kb.button_case_admin)
-        # Если перевод на более высокую должность одобрен, отправить в чат к Даше Шкред
-        # if ret[4] == 'Аттестация пройдена ✅' and ret[3] not in ['Опрос 4-го дня', 'Внутренний опрос']:
-        #     await bot.send_document(
-        #         -781832035, ret[1],
-        #         caption=f'{ret[2]}\nФормат опроса: {ret[3]}\nСтатус аттестации: {ret[4]}\nСсылка YT: {ret[6]}'
-        #     )
-        # # Отправка в чат "логи бота обучаторов" для контроля корректности выполнения команд
-        # await bot.send_document(
-        #     -1001776821827, ret[1],
-        #     caption=f'{ret[2]}\nФормат опроса: {ret[3]}\nСтатус аттестации: {ret[4]}\nСсылка YT: {ret[6]}'
-        # )
+    await report_wrapper(read, m=m)
     await state.finish()
 
 
@@ -151,25 +135,16 @@ async def start_search(message: types.Message):
 
 
 # Поиск ФИО по БД, вывод результатов
-async def search_item(message: types.Message, state: FSMContext):
+async def search_item(m: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        data['trainee_name'] = message.text.title()
+        data['trainee_name'] = m.text.title()
     read = await mysql_db.name_search(data['trainee_name'])
     if not read:
-        await bot.send_message(message.from_user.id, 'Информации об этом сотруднике нет 🤔',
-                                   reply_markup=admin_kb.button_case_admin)
+        await bot.send_message(m.from_user.id, 'Информации об этом сотруднике нет 🤔',
+                               reply_markup=admin_kb.button_case_admin)
     else:
-        for ret in read:
-            await bot.send_document(
-                message.from_user.id, ret[1],
-                caption=f'<b>{ret[2]}</b>\nФормат опроса - {ret[3]}\n'
-                        f'Статус аттестации - {ret[4]}\n'
-                        f'Набрано баллов - {ret[5]}\n'
-                        f'Ссылка YT: {ret[6]}'
-                        f'Переопрос: {ret[8]}',
-                reply_markup=get_delete_button(ret[0])
-            )
-        await bot.send_message(message.from_user.id, 'Готово!👌', reply_markup=admin_kb.button_case_admin)
+        await search_wrapper(read, m=m)
+        await bot.send_message(m.from_user.id, 'Готово!👌', reply_markup=admin_kb.button_case_admin)
     await state.finish()
 
 
