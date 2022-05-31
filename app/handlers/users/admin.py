@@ -69,6 +69,7 @@ async def load_status(c: types.CallbackQuery, state: FSMContext, callback_data: 
 
         if data['status'] == 'Аттестация не пройдена ❌':
             await FSMAdmin.retake.set()
+            await c.answer()
             await c.message.answer('Какая незадача 😔\n\nПожелаем ему удачи в другой раз :)')
             await c.message.answer('К слову, если аттестация не пройдена - надо установить дату следующей аттестации\n\n'
                                    'Пожалуйста, напиши мне её в формате <i>ДД.ММ.ГГГГ</i>\n\n'
@@ -76,9 +77,9 @@ async def load_status(c: types.CallbackQuery, state: FSMContext, callback_data: 
 
         else:
             data['retake'] = None
-            await c.message.answer('Еще одна успешная аттестация 😎\n\nНе забудь поздравить умничку 🙃')
             await FSMAdmin.link.set()
             await c.answer()
+            await c.message.answer('Еще одна успешная аттестация 😎\n\nНе забудь поздравить умничку 🙃')
             await c.message.answer('Мы почти закончили, осталась только ссылка на YouTube ⏩\n\n'
                                    'Скопируй её и пришли мне')
 
@@ -87,12 +88,16 @@ async def load_status(c: types.CallbackQuery, state: FSMContext, callback_data: 
 async def load_retake(m: types.Message, state: FSMContext):
     async with state.proxy() as data:
         if m.text.lower() == 'увольнение':
-            data['retake'] = m.text.lower()
+            data['retake'] = None
         else:
-            data['retake'] = datetime.strptime(m.text, "%d.%m.%Y").strftime("%Y-%m-%d")
-    await FSMAdmin.link.set()
-    await m.answer('Мы почти закончили, осталась только ссылка на YouTube ⏩\n\n'
-                           'Скопируй её и пришли мне')
+            try:
+                data['retake'] = datetime.strptime(m.text, "%d.%m.%Y").strftime("%Y-%m-%d")
+                await FSMAdmin.link.set()
+                await m.answer('Мы почти закончили, осталась только ссылка на YouTube ⏩\n\n'
+                               'Скопируй её и пришли мне')
+            except ValueError:
+                await m.answer("Это некорректная дата. Пожалуйста, введи дату по шаблону.")
+
 
 
 # Загрузка ссылки, обёртка результатов загрузки
