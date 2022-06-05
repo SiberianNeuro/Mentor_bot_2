@@ -63,27 +63,23 @@ async def enter_name(m: types.Message, state: FSMContext):
 
 @dp.callback_query_handler(other_kb.register_callback.filter(status='position'), state=FSMRegister.position)
 async def enter_position(c: types.CallbackQuery, state: FSMContext, callback_data: dict):
+    await c.answer()
     async with state.proxy() as data:
-        data['pos'] = callback_data.get("position")
-        await FSMRegister.next()
+        data['pos'] = callback_data.get("role")
         data['username'] = '@' + c.from_user.username
-        await FSMRegister.next()
         data['chat_id'] = c.from_user.id
     await c.message.answer('Регистрация завершена, добро пожаловать :)', reply_markup=types.ReplyKeyboardRemove())
     await mysql_db.add_user(state)
     await state.finish()
 
-@dp.message_handler(lambda message: message.text.startswith('Спасибо') or message.text.startswith('спасибо'))
-async def no_problem(message: types.Message):
-    await message.reply_animation('CgACAgQAAxkBAAIK22Ja_j34BiSLTE1cAAFfZWHqUFigbwAC3gEAAuMCVVMnLbW7zZm4QiQE')
+
 
 def register_handlers_other(dp: Dispatcher):
-    dp.register_message_handler(commands_start, commands=['start'])
-    dp.register_message_handler(start_register, commands='register', state=None)
+    dp.register_message_handler(commands_start, CommandStart())
+    dp.register_message_handler(start_register, other_kb.start_register.filter(status='yes'), state=None)
     dp.register_message_handler(cancel_handler, state='*', commands='отмена')
     dp.register_message_handler(cancel_handler, Text(equals='отмена', ignore_case=True), state='*')
     dp.register_message_handler(enter_name, state=FSMRegister.name)
-    dp.register_callback_query_handler(enter_position, lambda x: x.data, state="*")
-    dp.register_message_handler(no_problem, lambda message: message.text.startswith('Спасибо') or message.text.
-                                startswith('спасибо'))
+    dp.register_callback_query_handler(enter_position, other_kb.register_callback.filter(status='position'), state=FSMRegister.position)
+
 

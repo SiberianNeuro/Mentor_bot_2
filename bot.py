@@ -10,11 +10,11 @@ from app.handlers.users import admin, other, overlord
 
 async def on_startup(dispatcher):
     await set_default_commands(dispatcher)
-    logging.basicConfig(filename="logfile.log",
-                        filemode="w",
+    logging.basicConfig(#filename="logfile.log",
+                        #filemode="w",
                         format=u"%(filename)s [LINE:%(lineno)d] #%(levelname)-8s [%(asctime)s]  %(message)s",
-                        level=logging.INFO,
-                        # level=logging.DEBUG,  # Можно заменить на другой уровень логгирования.
+                        # level=logging.INFO,
+                        level=logging.DEBUG,  # Можно заменить на другой уровень логгирования.
                         )
 
 

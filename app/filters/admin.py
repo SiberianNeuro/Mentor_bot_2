@@ -2,13 +2,14 @@ from aiogram import types
 
 from aiogram.dispatcher.filters import BoundFilter
 
-from app.services.config import load_config
+from app.db.mysql_db import admins_ids
 
 
 class IsAdmin(BoundFilter):
     async def check(self, obj):
-        config = load_config(".env")
-        if obj.from_user.id not in config.tg_bot.admin_ids:
-            return False
-        else:
-            return True
+        ids = await admins_ids()
+        for i in ids:
+            if obj.from_user.id in i:
+                return True
+            else:
+                return False

@@ -7,10 +7,11 @@ from app.db.mysql_db import chat_id_check
 
 async def is_register(obj):
     result = await chat_id_check()
-    check_list = []
+    counter = 0
     for i in result:
-        check_list.append(int(i[0]))
-    if obj in check_list:
+        if obj in i and i[1] == 1:
+            counter += 1
+    if counter > 0:
         return True
     else:
         return False
