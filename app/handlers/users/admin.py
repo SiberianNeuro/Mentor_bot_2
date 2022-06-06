@@ -122,7 +122,7 @@ async def load_retake(m: types.Message, state: FSMContext):
 async def load_link(m: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['link'] = m.text
-        if data['status'] == 3:
+        if data['status'] == 3 and data['form'] in (3, 4):
             await mysql_db.get_raise_user(data['user_id'])
     await mysql_db.sql_add_command(state)
     read = await mysql_db.item_search(data["document"])
