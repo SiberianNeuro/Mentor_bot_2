@@ -6,7 +6,7 @@ import datetime
 
 async def report_wrapper(data, m: types.Message):
     data = data[0]
-    if data[4] == "Аттестация пройдена ✅" and data[8] == None:
+    if data[4] == "Аттестация пройдена ✅" and data[7] == None:
         await m.answer_document(data[1],
             caption=f'<b>{data[2]}</b>\n'
                     f'Формат опроса - {data[3]}\n'
@@ -51,13 +51,13 @@ async def report_wrapper(data, m: types.Message):
                     f'<i>Последняя аттестация. Увольнение сотрудника</i>\n'
                     f'Ссылка YT: {data[6]}'
         )
-    elif data[4] == "Аттестация не пройдена ❌" and data[8] != None:
+    elif data[4] == "На пересдачу ⚠️":
         await m.answer_document(data[1],
                                 caption=f'<b>{data[2]}</b>\n'
                                         f'Формат опроса - {data[3]}\n'
                                         f'Статус аттестации - {data[4]}\n'
                                         f'Набрано баллов - {data[5]}\n'
-                                        f'Дата переаттестации - {data[8].strftime("%d.%m.%Y")}\n'
+                                        f'Дата переаттестации - {data[7].strftime("%d.%m.%Y")}\n'
                                         f'Ссылка YT: {data[6]}',
                                 reply_markup=get_delete_button(data[0])
                                 )
@@ -67,13 +67,13 @@ async def report_wrapper(data, m: types.Message):
             caption=f'{data[2]}\n'
                     f'Формат опроса: {data[3]}\n'
                     f'Статус аттестации: {data[4]}\n'
-                    f'Дата переаттестации - {data[8].datetime.strftime("%d.%m.%Y")}\n'
+                    f'Дата переаттестации - {data[7].datetime.strftime("%d.%m.%Y")}\n'
                     f'Ссылка YT: {data[6]}'
         )
 
 async def search_wrapper(resp, m: types.Message):
     for data in resp:
-        if data[4] == "Аттестация пройдена ✅" and data[8] == None:
+        if data[4] == "Аттестация пройдена ✅":
             await m.answer_document(data[1],
                                     caption=f'<b>{data[2]}</b>\n'
                                             f'Формат опроса - {data[3]}\n'
@@ -82,7 +82,7 @@ async def search_wrapper(resp, m: types.Message):
                                             f'Ссылка YT: {data[6]}',
                                     reply_markup=get_delete_button(data[0])
                                     )
-        elif data[4] == "Аттестация не пройдена ❌" and data[8] == None:
+        elif data[4] == "Аттестация не пройдена ❌":
             await m.answer_document(data[1],
                                     caption=f'<b>{data[2]}</b>\n'
                                             f'Формат опроса - {data[3]}\n'
@@ -92,13 +92,13 @@ async def search_wrapper(resp, m: types.Message):
                                             f'Ссылка YT: {data[6]}',
                                     reply_markup=get_delete_button(data[0])
                                     )
-        elif data[4] == "Аттестация не пройдена ❌" and data[8] != None:
+        elif data[4] == "На пересдачу ⚠️":
             await m.answer_document(data[1],
                                     caption=f'<b>{data[2]}</b>\n'
                                             f'Формат опроса - {data[3]}\n'
                                             f'Статус аттестации - {data[4]}\n'
                                             f'Набрано баллов - {data[5]}\n'
-                                            f'Дата переаттестации - {data[8].strftime("%d.%m.%Y")}\n'
+                                            f'Дата переаттестации - {data[7].strftime("%d.%m.%Y")}\n'
                                             f'Ссылка YT: {data[6]}',
                                     reply_markup=get_delete_button(data[0])
                                     )
