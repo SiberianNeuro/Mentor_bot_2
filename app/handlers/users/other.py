@@ -2,11 +2,12 @@ from aiogram.dispatcher import FSMContext
 from aiogram import types, Dispatcher
 
 from app.filters.other import is_register
-from loader import dp, bot
+from loader import dispatcher as dp, bot
 from aiogram.dispatcher.filters import Text, CommandStart
 from app.keyboards import other_kb
 from app.utils.misc.states import FSMRegister
 from app.db import mysql_db
+
 
 @dp.message_handler(CommandStart(), state="*")
 async def commands_start(m: types.Message, state: FSMContext):
@@ -20,7 +21,6 @@ async def commands_start(m: types.Message, state: FSMContext):
     else:
         await m.answer('Вижу, что ты еще не проходил регистрацию 😱\n\n⬇️Скорее жми кнопку и начнём знакомиться⬇️',
                        reply_markup=other_kb.get_register_button())
-
 
 
 @dp.callback_query_handler(other_kb.start_register.filter(status='yes'), state=None)
@@ -40,6 +40,7 @@ async def start_register(c: types.CallbackQuery):
         await c.message.answer('Для начала напиши своё ФИО полностью кириллицей\n\n'
                                '<b><i>Например: Погребной Данила Олегович</i></b>')
         await c.message.delete()
+
 
 @dp.message_handler(state='*', commands='отмена')
 @dp.message_handler(Text(equals='отмена', ignore_case=True), state='*')
@@ -71,7 +72,6 @@ async def enter_position(c: types.CallbackQuery, state: FSMContext, callback_dat
     await c.message.answer('Регистрация завершена, добро пожаловать :)', reply_markup=types.ReplyKeyboardRemove())
     await mysql_db.add_user(state)
     await state.finish()
-
 
 
 def register_handlers_other(dp: Dispatcher):

@@ -95,3 +95,11 @@ async def add_user(state):
             sql = "INSERT INTO users (fullname, role_id, username, chat_id, reg_date, active) VALUES (%s, %s, %s, %s, CURRENT_DATE, 1)"
             cur.execute(sql, tuple(data.values()))
             conn.commit()
+
+
+async def active_users():
+    with conn.cursor() as cur:
+        sql = "SELECT chat_id FROM users WHERE active = 1"
+        cur.execute(sql)
+        result = cur.fetchall()
+    return result

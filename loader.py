@@ -10,7 +10,7 @@ config = load_config(".env")
 
 storage = RedisStorage2() if config.tg_bot.use_redis else MemoryStorage()
 bot = Bot(token=config.tg_bot.token, parse_mode=ParseMode.HTML)
-dp = Dispatcher(bot, storage=storage)
+dispatcher = Dispatcher(bot, storage=storage)
 conn = pymysql.connect(
             host=config.db.db_host,
             user=config.db.db_user,

@@ -4,8 +4,8 @@ from aiogram.utils.exceptions import (Unauthorized, InvalidQueryID, TelegramAPIE
                                       MessageTextIsEmpty, RetryAfter,
                                       CantParseEntities, MessageCantBeDeleted)
 
-from loader import dp
-
+from loader import dispatcher as dp
+from aiogram import Dispatcher
 
 @dp.errors_handler()
 async def errors_handler(update, exception):
@@ -55,3 +55,6 @@ async def errors_handler(update, exception):
         return True
 
     logging.exception(f'Update: {update} \n{exception}')
+
+def register_error_handler(dp: Dispatcher):
+    dp.register_errors_handler(errors_handler)

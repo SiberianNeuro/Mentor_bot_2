@@ -1,5 +1,5 @@
 from .admin import IsAdmin
-from loader import dp
+from loader import dispatcher
 
 if __name__ == "filters":
-    dp.filters_factory.bind(IsAdmin)
+    dispatcher.filters_factory.bind(IsAdmin)

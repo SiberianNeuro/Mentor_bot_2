@@ -1,11 +1,11 @@
 from aiogram import types, Dispatcher
-from loader import dp, bot
+from loader import dispatcher, bot
 
 
 overlords = [323123946]
 
 
-@dp.message_handler(lambda message: message.text == '4 8 15 16 23 42')
+@dispatcher.message_handler(lambda message: message.text == '4 8 15 16 23 42')
 async def say_hello_to_overlord(message: types.Message):
     if message.from_user.id in overlords:
         await bot.send_message(message.from_user.id, 'К твоим услугам, шеф.')

@@ -13,3 +13,9 @@ class FSMAdmin(StatesGroup):
 class FSMRegister(StatesGroup):
     name = State()
     position = State()
+
+
+class Mailing(StatesGroup):
+    start_mailing = State()
+    process_mailing = State()
+    confirm_mailing = State()
