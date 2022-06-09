@@ -16,6 +16,8 @@ class FSMRegister(StatesGroup):
 
 
 class Mailing(StatesGroup):
+    workers = State()
+    process_workers = State()
     start_mailing = State()
     process_mailing = State()
     confirm_mailing = State()

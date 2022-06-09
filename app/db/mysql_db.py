@@ -97,9 +97,20 @@ async def add_user(state):
             conn.commit()
 
 
-async def active_users():
+async def active_users(data):
     with conn.cursor() as cur:
-        sql = "SELECT chat_id FROM users WHERE active = 1"
-        cur.execute(sql)
+        if len(data) != 1:
+            cur.execute(f"SELECT chat_id FROM users WHERE role_id IN {data}")
+        else:
+            cur.execute(f'SELECT chat_id FROM users WHERE role_id = {data[0]}')
+        result = cur.fetchall()
+    return result
+
+async def get_current_roles(data):
+    with conn.cursor() as cur:
+        if len(data) != 1:
+            cur.execute(f"SELECT name FROM roles WHERE id IN {data}")
+        else:
+            cur.execute(f'SELECT name FROM roles WHERE id = {data[0]}')
         result = cur.fetchall()
     return result

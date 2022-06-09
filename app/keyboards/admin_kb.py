@@ -1,7 +1,7 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.callback_data import CallbackData
 
-from app.db.get_buttons import get_stage_buttons, get_result_buttons
+from app.db.get_buttons import get_stage_buttons, get_result_buttons, get_role_buttons
 
 button_load = KeyboardButton('Загрузить')
 button_cancel = KeyboardButton('Отмена')
@@ -48,28 +48,35 @@ def get_delete_button(id: int) -> InlineKeyboardMarkup:
 
 """Клавиатуры рассылок"""
 
-mailing_callback = CallbackData('mailing', 'action')
+mailing_callback = CallbackData('mailing', 'action', 'c_data')
 
-
-# Стартовая клавиатура
-def get_mailing_menu():
-    buttons = (
-        InlineKeyboardButton(text='Загрузить', callback_data='upload'),
-        InlineKeyboardButton(text='Отправить')
-    )
 
 def get_mailing_keyboard():
     buttons = [
-        InlineKeyboardButton(text='Загрузить еще', callback_data=mailing_callback.new(action='load')),
-        InlineKeyboardButton(text='Подтвердить', callback_data=mailing_callback.new(action='confirm'))
+        InlineKeyboardButton(text='Добавить', callback_data=mailing_callback.new(action='load', c_data=0)),
+        InlineKeyboardButton(text='Подтвердить', callback_data=mailing_callback.new(action='confirm', c_data=0))
     ]
     mailing_keyboard = InlineKeyboardMarkup(row_width=2)
     mailing_keyboard.add(*buttons)
     return mailing_keyboard
 
 
+def text_switch_button():
+    button = InlineKeyboardButton(text='Загрузить текст(-ы)', callback_data=mailing_callback.new(action='execute', c_data=0))
+    text_switch_button = InlineKeyboardMarkup(row_width=1)
+    text_switch_button.add(button)
+    return text_switch_button
+
+
 def get_execute_button():
-    button = InlineKeyboardButton(text='Начать рассылку', callback_data=mailing_callback.new(action='execute'))
+    button = InlineKeyboardButton(text='Начать рассылку', callback_data=mailing_callback.new(action='execute', c_data=0))
     execute_button = InlineKeyboardMarkup(row_width=1)
     execute_button.add(button)
     return execute_button
+
+def get_roles_keyboard():
+    buttons = get_role_buttons()
+    roles_keyboard = InlineKeyboardMarkup(row_width=2)
+    for data, text in buttons:
+        roles_keyboard.insert(InlineKeyboardButton(text=text, callback_data=mailing_callback.new(action='worker', c_data=data)))
+    return roles_keyboard

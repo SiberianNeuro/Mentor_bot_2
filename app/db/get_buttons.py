@@ -26,3 +26,4 @@ def get_role_buttons():
         cur.execute(sql)
         result = cur.fetchall()
     return result
+
