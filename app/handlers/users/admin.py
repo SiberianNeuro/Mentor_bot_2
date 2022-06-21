@@ -54,7 +54,7 @@ async def load_document(m: types.Message, state: FSMContext):
         f'А результат аттестации в баллах - <u>{source[0]}</u>\n\n'
         f'Если это неверно - срочно жми <b>"Отмена"</b> и перепроверяй файл!\n\n'
         f'Ну а если все в порядке - выбирай формат опроса ⬇️',
-        reply_markup=get_stage_keyboard()
+        reply_markup=await get_stage_keyboard()
     )
 
 
@@ -65,7 +65,7 @@ async def load_form(c: types.CallbackQuery, state: FSMContext, callback_data: di
     await FSMAdmin.next()
     await c.answer()
     await c.message.answer('Здорово! Теперь выбери, прошел ли сотрудник опрос:',
-                           reply_markup=get_result_keyboard())
+                           reply_markup=await get_result_keyboard())
 
 
 # Выбор итога аттестации, переход к загрузке ссылки

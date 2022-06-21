@@ -12,7 +12,13 @@ class FSMAdmin(StatesGroup):
 
 class FSMRegister(StatesGroup):
     name = State()
-    position = State()
+    city = State()
+    role = State()
+    med_education = State()
+    traineeship = State()
+    profession = State()
+    start_year = State()
+    end_year = State()
 
 
 class Mailing(StatesGroup):

@@ -5,7 +5,14 @@ import os
 from loader import config, bot
 
 
-async def file_parser(fileid, filename, with_retake: bool = False):
+async def file_parser(fileid, filename, with_retake: bool = False) -> tuple:
+    """
+    Скачиваем документ с сервера телеграма и парсим его
+    param: fileid:  айдишник файла на сервере телеграм (не уникальный)
+    param: filename: наименование файла на сервере телеграм
+    param: with_retake: если стажер идет на пересдачу, дополнительно парсим дату пересдачи.
+    По умолчанию не парсим.
+    """
     file_info = await bot.get_file(fileid)
     fi = file_info.file_path
     name = filename

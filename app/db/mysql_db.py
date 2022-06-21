@@ -13,7 +13,7 @@ async def get_user_id(data):
 #Лист админских ИД
 async def admins_ids():
     with conn.cursor() as cur:
-        sql = "SELECT chat_id FROM users WHERE role_id <= 4"
+        sql = "SELECT chat_id FROM admins"
         cur.execute(sql)
         result = cur.fetchall()
     return result
@@ -44,7 +44,7 @@ async def item_search(data):
         result = cur.fetchall()
         print(result)
     return result
-    # return cur.execute('SELECT * FROM at_list WHERE document == ?', (data,)).fetchall()
+
 
 # Найти все опросы по ФИО стажера
 async def name_search(data):
@@ -61,12 +61,14 @@ async def name_search(data):
         print(result)
     return result
 
+
 # Удалить запись об опросе
 async def sql_delete_command(data):
     with conn.cursor() as cur:
         sql = "DELETE FROM exams WHERE id = %s"
         cur.execute(sql, (data,))
         conn.commit()
+
 
 # Повышение
 async def get_raise_user(id: int):
@@ -105,6 +107,7 @@ async def active_users(data):
             cur.execute(f'SELECT chat_id FROM users WHERE role_id = {data[0]}')
         result = cur.fetchall()
     return result
+
 
 async def get_current_roles(data):
     with conn.cursor() as cur:

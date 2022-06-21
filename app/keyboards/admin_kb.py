@@ -16,8 +16,8 @@ exam_callback = CallbackData('exam', 'action', 'action_data')
 
 
 #Клавиатура загрузки формата опроса
-def get_stage_keyboard():
-    buttons = get_stage_buttons()
+async def get_stage_keyboard():
+    buttons = await get_stage_buttons()
     format_keyboard = InlineKeyboardMarkup(row_width=2)
     for data, text in buttons:
         format_keyboard.insert(InlineKeyboardButton(
@@ -27,8 +27,8 @@ def get_stage_keyboard():
 
 
 # Клавиатура загрузки статуса опроса
-def get_result_keyboard():
-    buttons = get_result_buttons()
+async def get_result_keyboard():
+    buttons = await get_result_buttons()
     result_keyboard = InlineKeyboardMarkup(row_width=1)
     for data, text in buttons:
         result_keyboard.insert(InlineKeyboardButton(

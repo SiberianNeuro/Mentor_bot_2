@@ -4,7 +4,13 @@ from app.keyboards import admin_kb
 from app.keyboards.admin_kb import get_delete_button
 import datetime
 
-async def report_wrapper(data, m: types.Message):
+
+async def report_wrapper(data: tuple, m: types.Message):
+    """
+    Оболочка для результатов опроса.
+    param: data: результат запроса SQL
+    param: m: объект телеграм API - сообщение
+    """
     data = data[0]
     if data[4] == "Аттестация пройдена ✅" and data[7] == None:
         await m.answer_document(data[1],
@@ -72,6 +78,11 @@ async def report_wrapper(data, m: types.Message):
         )
 
 async def search_wrapper(resp, m: types.Message):
+    """
+        Оболочка для результатов опроса.
+        param: resp: результат запроса SQL
+        param: m: объект телеграм API - сообщение
+        """
     for data in resp:
         if data[4] == "Аттестация пройдена ✅":
             await m.answer_document(data[1],
