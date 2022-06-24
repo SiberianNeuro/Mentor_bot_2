@@ -5,7 +5,7 @@ from loader import conn
 #Вытащить айдишник юзера
 async def get_user_id(data):
     with conn.cursor() as cur:
-        sql = "SELECT id FROM users WHERE fullname = %s"
+        sql = "SELECT id FROM staffs WHERE fullname = %s"
         cur.execute(sql, (data,))
         result = cur.fetchall()
     return result
@@ -33,10 +33,10 @@ async def sql_add_command(state):
 # Найти опрос по айдишнику документа
 async def item_search(data):
     with conn.cursor() as cur:
-        sql = "SELECT exams.id, exams.document_id, users.fullname, stages.stage, results.result, " \
+        sql = "SELECT exams.id, exams.document_id, staffs.fullname, stages.stage, results.result, " \
               "exams.score, exams.link, exams.retake_date " \
               "FROM mentor_base.exams " \
-              "JOIN mentor_base.users ON exams.user_id = users.id " \
+              "JOIN mentor_base.staffs ON exams.user_id = staffs.id " \
               "JOIN mentor_base.stages ON exams.stage_id = stages.id " \
               "JOIN mentor_base.results ON exams.result_id = results.id " \
               "WHERE document_id = %s"
@@ -49,13 +49,13 @@ async def item_search(data):
 # Найти все опросы по ФИО стажера
 async def name_search(data):
     with conn.cursor() as cur:
-        sql = "SELECT exams.id, exams.document_id, users.fullname, stages.stage, results.result, " \
+        sql = "SELECT exams.id, exams.document_id, staffs.fullname, stages.stage, results.result, " \
               "exams.score, exams.link, exams.retake_date " \
               "FROM mentor_base.exams " \
-              "JOIN mentor_base.users ON exams.user_id = users.id " \
+              "JOIN mentor_base.staffs ON exams.user_id = staffs.id " \
               "JOIN mentor_base.stages ON exams.stage_id = stages.id " \
               "JOIN mentor_base.results ON exams.result_id = results.id " \
-              "WHERE users.fullname LIKE %s"
+              "WHERE staffs.fullname LIKE %s"
         cur.execute(sql, ('%' + data + '%',))
         result = cur.fetchall()
         print(result)
@@ -73,7 +73,7 @@ async def sql_delete_command(data):
 # Повышение
 async def get_raise_user(id: int):
     with conn.cursor() as cur:
-        sql = "UPDATE mentor_base.users " \
+        sql = "UPDATE mentor_base.staffs " \
               "SET role_id = IF(role_id > 6, role_id -1, role_id) " \
               "WHERE id = %s"
         cur.execute(sql, (id,))
@@ -85,26 +85,31 @@ async def get_raise_user(id: int):
 
 async def chat_id_check():
     with conn.cursor() as cur:
-        sql = "SELECT chat_id, active FROM users"
+        sql = "SELECT chat_id, active FROM staffs"
         cur.execute(sql)
         result = cur.fetchall()
     return result
 
 
 async def add_user(state):
-    async with state.proxy() as data:
-        with conn.cursor() as cur:
-            sql = "INSERT INTO users (fullname, role_id, username, chat_id, reg_date, active) VALUES (%s, %s, %s, %s, CURRENT_DATE, 1)"
-            cur.execute(sql, tuple(data.values()))
-            conn.commit()
+    with conn.cursor() as cur:
+        if state[2] in (5, 6, 7, 8):
+            sql = "INSERT INTO staffs (fullname, city, role_id, traineeship_id, profession, " \
+              "start_year, end_year, phone, username, chat_id, reg_date) VALUES " \
+              "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)"
+        elif state[2] in (9, 10, 11):
+            sql = "INSERT INTO staffs_L1 (fullname, city, role_id, med_education, phone, username, chat_id, reg_date) " \
+                  "VALUES (%s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)"
+        cur.execute(sql, state)
+        conn.commit()
 
 
 async def active_users(data):
     with conn.cursor() as cur:
         if len(data) != 1:
-            cur.execute(f"SELECT chat_id FROM users WHERE role_id IN {data}")
+            cur.execute(f"SELECT chat_id FROM staffs WHERE role_id IN {data}")
         else:
-            cur.execute(f'SELECT chat_id FROM users WHERE role_id = {data[0]}')
+            cur.execute(f'SELECT chat_id FROM staffs WHERE role_id = {data[0]}')
         result = cur.fetchall()
     return result
 
