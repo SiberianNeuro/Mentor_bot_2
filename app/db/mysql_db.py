@@ -15,7 +15,7 @@ async def admins_ids():
     with conn.cursor() as cur:
         sql = "SELECT chat_id FROM admins"
         cur.execute(sql)
-        result = cur.fetchall()
+        result = [id[0] for id in cur.fetchall()]
     return result
 
 # Добавить опрос в БД
@@ -85,9 +85,9 @@ async def get_raise_user(id: int):
 
 async def chat_id_check():
     with conn.cursor() as cur:
-        sql = "SELECT chat_id, active FROM staffs"
+        sql = "SELECT chat_id FROM staffs WHERE active = 1"
         cur.execute(sql)
-        result = cur.fetchall()
+        result = [id[0] for id in cur.fetchall()]
     return result
 
 
@@ -110,7 +110,7 @@ async def active_users(data):
             cur.execute(f"SELECT chat_id FROM staffs WHERE role_id IN {data}")
         else:
             cur.execute(f'SELECT chat_id FROM staffs WHERE role_id = {data[0]}')
-        result = cur.fetchall()
+        result = [id[0] for id in cur.fetchall()]
     return result
 
 

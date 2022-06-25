@@ -19,9 +19,9 @@ async def report_wrapper(data: tuple, m: types.Message):
                     f'Статус аттестации - {data[4]}\n'
                     f'Набрано баллов - {data[5]}\n'
                     f'Ссылка YT: {data[6]}',
-            reply_markup=get_delete_button(data[0])
+            reply_markup=await get_delete_button(data[0])
         )
-        await m.answer('Мы закончили, мы молодцы 👌', reply_markup=admin_kb.button_case_admin)
+        await m.answer('Мы закончили, мы молодцы 👌', reply_markup=await admin_kb.get_admin_kb())
         await bot.send_document(
             -781832035, data[1],
             caption=f'{data[2]}\nФормат опроса: {data[3]}\nСтатус аттестации: {data[4]}\nСсылка YT: {data[6]}'
@@ -38,9 +38,9 @@ async def report_wrapper(data: tuple, m: types.Message):
                     f'Набрано баллов - {data[5]}\n'
                     f'<i>Последняя аттестация. Увольнение сотрудника</i>\n'
                     f'Ссылка YT: {data[6]}',
-            reply_markup=get_delete_button(data[0])
+            reply_markup=await get_delete_button(data[0])
         )
-        await m.answer('Мы закончили, мы молодцы 👌', reply_markup=admin_kb.button_case_admin)
+        await m.answer('Мы закончили, мы молодцы 👌', reply_markup=await admin_kb.get_admin_kb())
         await bot.send_document(
             -781832035, data[1],
             caption=f'{data[2]}\n'
@@ -65,9 +65,9 @@ async def report_wrapper(data: tuple, m: types.Message):
                                         f'Набрано баллов - {data[5]}\n'
                                         f'Дата переаттестации - {data[7].strftime("%d.%m.%Y")}\n'
                                         f'Ссылка YT: {data[6]}',
-                                reply_markup=get_delete_button(data[0])
+                                reply_markup=await get_delete_button(data[0])
                                 )
-        await m.answer('Мы закончили, мы молодцы 👌', reply_markup=admin_kb.button_case_admin)
+        await m.answer('Мы закончили, мы молодцы 👌', reply_markup=await admin_kb.get_admin_kb())
         await bot.send_document(
             -1001776821827, data[1],
             caption=f'{data[2]}\n'
@@ -91,7 +91,7 @@ async def search_wrapper(resp, m: types.Message):
                                             f'Статус аттестации - {data[4]}\n'
                                             f'Набрано баллов - {data[5]}\n'
                                             f'Ссылка YT: {data[6]}',
-                                    reply_markup=get_delete_button(data[0])
+                                    reply_markup=await get_delete_button(data[0])
                                     )
         elif data[4] == "Аттестация не пройдена ❌":
             await m.answer_document(data[1],
@@ -101,7 +101,7 @@ async def search_wrapper(resp, m: types.Message):
                                             f'Набрано баллов - {data[5]}\n'
                                             f'<i>Последняя аттестация. Увольнение сотрудника</i>\n'
                                             f'Ссылка YT: {data[6]}',
-                                    reply_markup=get_delete_button(data[0])
+                                    reply_markup=await get_delete_button(data[0])
                                     )
         elif data[4] == "На пересдачу ⚠️":
             await m.answer_document(data[1],
@@ -111,5 +111,5 @@ async def search_wrapper(resp, m: types.Message):
                                             f'Набрано баллов - {data[5]}\n'
                                             f'Дата переаттестации - {data[7].strftime("%d.%m.%Y")}\n'
                                             f'Ссылка YT: {data[6]}',
-                                    reply_markup=get_delete_button(data[0])
+                                    reply_markup=await get_delete_button(data[0])
                                     )

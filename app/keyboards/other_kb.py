@@ -34,7 +34,7 @@ async def get_pos_keyboard():
 
 
 async def get_cancel_button():
-    button = KeyboardButton('отмена')
+    button = KeyboardButton('Отмена')
     cancel_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
     cancel_keyboard.add(button)
     return cancel_keyboard

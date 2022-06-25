@@ -14,14 +14,14 @@ async def on_startup(dispatcher):
     logging.basicConfig(#filename="logfile.log",
                         #filemode="w",
                         format=u"%(filename)s [LINE:%(lineno)d] #%(levelname)-8s [%(asctime)s]  %(message)s",
-                        level=logging.INFO,
-                        # level=logging.DEBUG,  # Можно заменить на другой уровень логгирования.
+                        # level=logging.INFO,
+                        level=logging.DEBUG,  # Можно заменить на другой уровень логгирования.
                         )
-    other.register_handlers_other(dispatcher)
     admin.register_handlers_admin(dispatcher)
-    overlord.register_handlers_overlord(dispatcher)
     mailing_admin.register_mailing_handlers(dispatcher)
+    overlord.register_handlers_overlord(dispatcher)
     error_handler.register_error_handler(dispatcher)
+    other.register_handlers_other(dispatcher)
 
 if __name__ == '__main__':
     executor.start_polling(dispatcher, skip_updates=True, on_startup=on_startup)

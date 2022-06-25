@@ -10,21 +10,21 @@ from loader import dispatcher, bot
 
 from app.filters.admin import IsAdmin
 from app.db import mysql_db
-from app.keyboards import admin_kb
+from app.keyboards import admin_kb, other_kb
 from app.keyboards.admin_kb import get_stage_keyboard, get_result_keyboard, exam_callback
 from app.utils.misc.states import FSMAdmin
 from app.utils.misc.file_parsing import file_parser
 
 
 # Команда входа в админку
-async def admin_start(m: types.Message, state: FSMContext):
+async def admin_start(message: types.Message, state: FSMContext):
     await state.finish()
-    await m.answer(f'Приветствую тебя, обучатор! 🦾\n\n'
+    await message.answer(f'Приветствую тебя, обучатор! 🦾\n\n'
                     f'Что я умею:\n\n'
                     f'👉🏻 Нажми на кнопку <b>"Загрузить"</b>, чтобы передать мне информацию о прошедшей аттестации\n'
                     f'👉🏻 Нажми кнопку <b>"Найти"</b>, чтобы найти информацию о предыдущих аттестациях',
-                    reply_markup=admin_kb.button_case_admin)
-    await m.delete()
+                         reply_markup=await admin_kb.get_admin_kb())
+    await message.delete()
 
 """Загрузка опроса"""
 
@@ -34,8 +34,7 @@ async def exam_start(m: types.Message):
     await FSMAdmin.document.set()
     await m.answer('<b>Начинаем загрузку результатов аттестации</b>\n'
                    'Чтобы выйти из режима загрузки, нажми кнопку <b>"Отмена"</b> или напиши /moderator',
-                   reply_markup=admin_kb.button_case_cancel
-                   )
+                   reply_markup=await other_kb.get_cancel_button())
     await m.answer('Сейчас тебе нужно прислать мне протокол опроса 📜')
 
 
