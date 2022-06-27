@@ -28,10 +28,11 @@ async def get_role_buttons():
     return result
 
 
-# Список городов
-async def get_city_buttons():
+
+async def get_education_buttons():
     with conn.cursor() as cur:
-        sql = "SELECT id, city FROM cities"
+        sql = "SELECT id, stage FROM stages WHERE id IN (5, 6)"
         cur.execute(sql)
         result = cur.fetchall()
     return result
+

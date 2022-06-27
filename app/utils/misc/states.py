@@ -20,6 +20,8 @@ class FSMRegister(StatesGroup):
     start_year = State()
     end_year = State()
     phone = State()
+    email = State()
+    birthdate = State()
 
 
 class Mailing(StatesGroup):

@@ -95,13 +95,28 @@ async def add_user(state):
     with conn.cursor() as cur:
         if state[2] in (5, 6, 7, 8):
             sql = "INSERT INTO staffs (fullname, city, role_id, traineeship_id, profession, " \
-              "start_year, end_year, phone, username, chat_id, reg_date) VALUES " \
+              "start_year, end_year, phone, email, birthdate, username, chat_id, reg_date) VALUES " \
               "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)"
         elif state[2] in (9, 10, 11):
-            sql = "INSERT INTO staffs_L1 (fullname, city, role_id, med_education, phone, username, chat_id, reg_date) " \
+            sql = "INSERT INTO staffs_L1 (fullname, city, role_id, med_education, phone, email, birthdate, username, chat_id, reg_date) " \
                   "VALUES (%s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)"
         cur.execute(sql, state)
         conn.commit()
+
+async def get_L3_user(name):
+    with conn.cursor() as cur:
+        sql = "SELECT staffs.id, fullname, username, phone, email, city, r.name, t.stage, profession, start_year, end_year " \
+              "FROM mentor_base.staffs " \
+              "JOIN traineeships t on t.id = staffs.traineeship_id " \
+              "JOIN roles r on r.id = staffs.role_id " \
+              "WHERE fullname = %s AND active = 1"
+        cur.execute(sql, name)
+        result = cur.fetchall()
+    return result
+
+async def get_L1_user():
+    with conn.cursor() as cur:
+        sql = "SELECT staffs_L1.id, fullname, username, phone, email, city, r.name, med_education FROM mentor_base.staffs_L1"
 
 
 async def active_users(data):

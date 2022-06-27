@@ -5,7 +5,7 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher.filters import Text
 
 from app.db.mysql_db import get_user_id
-from app.utils.misc.exam_wrapper import report_wrapper, search_wrapper
+from app.utils.misc.wrappers import report_wrapper, search_wrapper
 from loader import dispatcher, bot
 
 from app.filters.admin import IsAdmin

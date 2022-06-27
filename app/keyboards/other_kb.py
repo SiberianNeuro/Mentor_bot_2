@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.utils.callback_data import CallbackData
 
-from app.db.get_buttons import get_role_buttons, get_city_buttons
+from app.db.get_buttons import get_role_buttons, get_education_buttons
 
 start_register = CallbackData("start", "status")
 register_callback = CallbackData("register", "stage", "stage_data")
@@ -12,16 +12,6 @@ async def get_register_button():
     register_keyboard = InlineKeyboardMarkup(row_width=1)
     register_keyboard.add(button)
     return register_keyboard
-
-#
-# async def get_city_keyboard():
-#     city_list = await get_city_buttons()
-#     city_keyboard = InlineKeyboardMarkup(row_width=2)
-#     for data, text in city_list:
-#         city_keyboard.insert(InlineKeyboardButton(
-#             text=text, callback_data=register_callback.new(stage='city', stage_data=data)
-#         ))
-#     return city_keyboard
 
 
 async def get_pos_keyboard():
@@ -38,6 +28,16 @@ async def get_cancel_button():
     cancel_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
     cancel_keyboard.add(button)
     return cancel_keyboard
+
+
+async def get_education_keyboard():
+    buttons = await get_education_buttons()
+    education_keyboard = InlineKeyboardMarkup(row_width=2)
+    for data, text in buttons:
+        education_keyboard.insert(InlineKeyboardButton(
+            text=text, callback_data=register_callback.new(stage='education', stage_data=data)
+        ))
+    return education_keyboard
 
 
 async def get_spec_keyboard():
