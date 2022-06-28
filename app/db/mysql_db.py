@@ -19,7 +19,7 @@ async def admins_ids():
     return result
 
 # Добавить опрос в БД
-async def sql_add_command(state):
+async def append_exam(state):
     async with state.proxy() as data:
         with conn.cursor() as cur:
             sql = "INSERT INTO exams (document_id, " \
@@ -93,15 +93,22 @@ async def chat_id_check():
 
 async def add_user(state):
     with conn.cursor() as cur:
-        if state[2] in (5, 6, 7, 8):
-            sql = "INSERT INTO staffs (fullname, city, role_id, traineeship_id, profession, " \
-              "start_year, end_year, phone, username, chat_id, reg_date) VALUES " \
-              "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)"
-        elif state[2] in (9, 10, 11):
-            sql = "INSERT INTO staffs_L1 (fullname, city, role_id, med_education, phone, username, chat_id, reg_date) " \
-                  "VALUES (%s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)"
+        sql = "INSERT INTO staffs (fullname, city, role_id, traineeship_id, profession, " \
+          "start_year, end_year, phone, email, birthdate, username, chat_id, reg_date) VALUES " \
+          "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)"
         cur.execute(sql, state)
         conn.commit()
+
+async def get_user(name):
+    with conn.cursor() as cur:
+        sql = "SELECT s.id, fullname, username, r.name, city, t.stage, profession, start_year, end_year " \
+              "phone, email FROM mentor_base.staffs s " \
+              "JOIN traineeships t on t.id = staffs.traineeship_id " \
+              "JOIN roles r on r.id = staffs.role_id " \
+              "WHERE fullname = %s AND active = 1"
+        cur.execute(sql, name)
+        result = cur.fetchall()
+    return result
 
 
 async def active_users(data):

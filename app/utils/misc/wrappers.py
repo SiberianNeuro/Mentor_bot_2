@@ -113,3 +113,5 @@ async def search_wrapper(resp, m: types.Message):
                                             f'Ссылка YT: {data[6]}',
                                     reply_markup=await get_delete_button(data[0])
                                     )
+
+async def user_wrapper():

@@ -5,7 +5,7 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher.filters import Text
 
 from app.db.mysql_db import get_user_id
-from app.utils.misc.exam_wrapper import report_wrapper, search_wrapper
+from app.utils.misc.wrappers import report_wrapper, search_wrapper
 from loader import dispatcher, bot
 
 from app.filters.admin import IsAdmin
@@ -105,7 +105,7 @@ async def load_status(c: types.CallbackQuery, state: FSMContext, callback_data: 
 async def load_retake(m: types.Message, state: FSMContext):
     try:
         retake_date = datetime.strptime(m.text, "%d.%m.%Y")
-        assert retake_date > datetime.now(), await m.answer("Нельзя указывать сегодняшнюю или прошедшую дату.")
+        assert retake_date <= date.today(), await m.answer("Нельзя указывать сегодняшнюю или прошедшую дату.")
         async with state.proxy() as data:
             data['retake'] = retake_date.strftime("%Y-%m-%d")
             await FSMAdmin.link.set()
@@ -123,7 +123,7 @@ async def load_link(m: types.Message, state: FSMContext):
         data['link'] = m.text
         if data['status'] == 3 and data['form'] in (3, 4):
             await mysql_db.get_raise_user(data['user_id'])
-    await mysql_db.sql_add_command(state)
+    await mysql_db.append_exam(state)
     read = await mysql_db.item_search(data["document"])
     await report_wrapper(read, m=m)
     await state.finish()
