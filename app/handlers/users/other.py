@@ -142,7 +142,7 @@ async def finish_register(m: types.Message, state: FSMContext):
 
 
 def register_handlers_other(dp: Dispatcher):
-    dp.register_message_handler(commands_start, CommandStart())
+    dp.register_message_handler(commands_start, CommandStart(), state="*")
     dp.register_message_handler(start_register, other_kb.start_register.filter(status='yes'), state=None)
     dp.register_message_handler(cancel_handler, state='*', commands='отмена')
     dp.register_message_handler(cancel_handler, Text(equals='отмена', ignore_case=True), state='*')
