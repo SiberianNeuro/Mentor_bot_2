@@ -1,4 +1,6 @@
 from aiogram import types
+
+from app.db.mysql_db import get_user
 from loader import bot
 from app.keyboards import admin_kb
 from app.keyboards.admin_kb import get_delete_button
@@ -114,4 +116,23 @@ async def search_wrapper(resp, m: types.Message):
                                     reply_markup=await get_delete_button(data[0])
                                     )
 
-async def user_wrapper():
+async def user_wrapper(name):
+    user = await get_user(name)
+    if user[3] == "Врач-стажер":
+        string = f'<b>{user[1]}</b> {user[2]}\n' \
+                 f'Должность: {user[3]}\n' \
+                 f'Город: {user[4]}\n' \
+                 f'Ординатура: {user[5]}\n' \
+                 f'Специальность: {"-" if user[6] == None else user[6]}\n' \
+                 f'Год поступления: {"-" if user[7] == None else user[7]}\n' \
+                 f'Год выпуска: {"-" if user[8] == None else user[8]}\n' \
+                 f'Номер телефона: {user[9]}' \
+                 f'E-mail: {user[10]}'
+    elif user[3] == "Стажер L1":
+        string = f'<b>{user[1]}</b> {user[2]}\n' \
+                 f'Должность: {user[3]}\n' \
+                 f'Город: {user[4]}\n' \
+                 f'Образование: {user[4]}\n' \
+                 f'Номер телефона: {user[9]}\n' \
+                 f'E-mail: {user[10]}'
+    return string

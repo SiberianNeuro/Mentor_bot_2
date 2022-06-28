@@ -11,7 +11,7 @@ from loader import dispatcher, bot
 from app.filters.admin import IsAdmin
 from app.db import mysql_db
 from app.keyboards import admin_kb, other_kb
-from app.keyboards.admin_kb import get_stage_keyboard, get_result_keyboard, exam_callback
+from app.keyboards.admin_kb import get_stage_keyboard, get_result_keyboard, exam_callback, mentor_callback
 from app.utils.misc.states import FSMAdmin
 from app.utils.misc.file_parsing import file_parser
 
@@ -33,7 +33,7 @@ async def admin_start(message: types.Message, state: FSMContext):
 async def exam_start(m: types.Message):
     await FSMAdmin.document.set()
     await m.answer('<b>Начинаем загрузку результатов аттестации</b>\n'
-                   'Чтобы выйти из режима загрузки, нажми кнопку <b>"Отмена"</b> или напиши /moderator',
+                   'Чтобы выйти из режима загрузки, нажми кнопку <b>"Отмена"</b> или напиши <code>/moderator</code>',
                    reply_markup=await other_kb.get_cancel_button())
     await m.answer('Сейчас тебе нужно прислать мне протокол опроса 📜')
 
@@ -142,7 +142,7 @@ async def del_callback_run(c: types.CallbackQuery, callback_data: dict):
 # Начало поиска: запрос ФИО
 async def start_search(message: types.Message):
     await message.reply('👇🏼 Введи Ф.И.О. сотрудника полностью или по отдельности',
-                            reply_markup=admin_kb.button_case_cancel)
+                            reply_markup=await other_kb.get_cancel_button())
     await FSMAdmin.trainee_name.set()
 
 
@@ -153,12 +153,20 @@ async def search_item(m: types.Message, state: FSMContext):
     read = await mysql_db.name_search(data['trainee_name'])
     if not read:
         await bot.send_message(m.from_user.id, 'Информации об этом сотруднике нет 🤔',
-                               reply_markup=admin_kb.button_case_admin)
+                               reply_markup=await admin_kb.get_admin_kb())
     else:
         await search_wrapper(read, m=m)
         await bot.send_message(m.from_user.id, 'Готово!👌', reply_markup=admin_kb.button_case_admin)
     await state.finish()
 
+
+async def choose_mentor(c: types.CallbackQuery, callback_data: dict):
+    role_id = callback_data.get('role_id')
+    mentor_id = callback_data.get('mentor_id')
+    user_id = callback_data.get('user_id')
+    if role_id == 4:
+        if mentor_id == 5:
+            pass
 
 def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(admin_start, IsAdmin(), commands=['moderator'], state="*")
@@ -171,3 +179,4 @@ def register_handlers_admin(dp: Dispatcher):
     dp.register_callback_query_handler(del_callback_run, IsAdmin(), exam_callback.filter(action='delete'))
     dp.register_message_handler(start_search, IsAdmin(), Text(equals='Найти'), state=None)
     dp.register_message_handler(search_item, IsAdmin(), state=FSMAdmin.trainee_name)
+    dp.register_callback_query_handler(choose_mentor, IsAdmin(), mentor_callback.filter())

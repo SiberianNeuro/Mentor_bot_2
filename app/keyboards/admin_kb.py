@@ -1,7 +1,7 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.callback_data import CallbackData
 
-from app.db.get_buttons import get_stage_buttons, get_result_buttons, get_role_buttons
+from app.db.get_buttons import get_stage_buttons, get_result_buttons, get_role_buttons, get_mentors_buttons
 
 
 async def get_admin_kb():
@@ -85,3 +85,15 @@ async def get_roles_keyboard():
     for data, text in buttons:
         roles_keyboard.insert(InlineKeyboardButton(text=text, callback_data=mailing_callback.new(action='worker', c_data=data)))
     return roles_keyboard
+
+mentor_callback = CallbackData('mentors', 'mentor_id', 'role_id', 'user_id')
+
+
+async def get_mentors_keyboard(obj):
+    buttons = await get_mentors_buttons()
+    mentors_keyboard = InlineKeyboardMarkup(row_width=1)
+    for data, text, role in buttons:
+        mentors_keyboard.insert(InlineKeyboardButton(
+            text=text, callback_data=mentor_callback.new(mentor_id=data, role_id=role, user_id=obj)
+        ))
+    return mentors_keyboard

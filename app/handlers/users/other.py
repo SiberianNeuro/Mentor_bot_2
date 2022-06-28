@@ -3,12 +3,13 @@ from datetime import datetime, date
 from aiogram.dispatcher import FSMContext
 from aiogram import types, Dispatcher
 
-from app.db.mysql_db import admins_ids
 from app.filters.other import is_register
 from app.utils.misc.sheets_append import add_user_array
+from app.utils.misc.wrappers import user_wrapper
 from loader import dispatcher as dp, bot
 from aiogram.dispatcher.filters import Text, CommandStart
 from app.keyboards import other_kb
+from app.keyboards.admin_kb import get_mentors_keyboard
 from app.utils.misc.states import FSMRegister
 from app.db import mysql_db
 
@@ -162,8 +163,13 @@ async def finish_register(m: types.Message, state: FSMContext):
         await state.update_data(bdate=birthdate, username='@' + m.from_user.username, chat_id=m.from_user.id)
         user = await state.get_data()
         await mysql_db.add_user(tuple(user.values()))
-        await m.answer('Регистрация завершена, добро пожаловать :)', reply_markup=types.ReplyKeyboardRemove())
+        await m.answer('С регистрацией закончили 👍\n\n Сейчас руководитель отдела обучения определит твоего наставника,'
+                       ' после чего я пришлю тебе ссылочку на чаты, где мы будем тебя ждать ;)',
+                       reply_markup=types.ReplyKeyboardRemove())
         await state.finish()
+        await bot.send_message(555185558, f'Настя, новый стажер прошел регистрацию:\n\n'
+                                          f'{await user_wrapper(user["name"])}', reply_markup=await get_mentors_keyboard())
+
     except ValueError:
         await m.answer("Это некорректная дата. Пожалуйста, введи дату по шаблону.")
 
