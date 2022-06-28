@@ -18,6 +18,14 @@ async def get_admin_kb():
 
 exam_callback = CallbackData('exam', 'action', 'action_data')
 
+async def get_overload_keyboard():
+    overload_keyboard = InlineKeyboardMarkup(row_width=1)
+    overload_keyboard.insert(
+        InlineKeyboardButton(text='Подтвердить ✅', callback_data=exam_callback.new(
+            action='overload', action_data='1'
+        ))
+    )
+    return overload_keyboard
 
 #Клавиатура загрузки формата опроса
 async def get_stage_keyboard():
