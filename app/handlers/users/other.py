@@ -1,3 +1,5 @@
+from datetime import datetime, date
+
 from aiogram.dispatcher import FSMContext
 from aiogram import types, Dispatcher
 
@@ -59,7 +61,7 @@ async def get_fullname(m: types.Message, state: FSMContext):
     first_name = m.text.split()[1]
     await state.update_data(name=m.text.title())
     await FSMRegister.city.set()
-    await m.answer(f'Приятно познакомиться, {first_name}!\n\nТеперь напиши, пожалуйста, город, в котором ты работаешь 🏙\n'
+    await m.answer(f'Приятно познакомиться, {first_name}!\n\nТеперь напиши город, в котором ты работаешь 🏙\n'
                    f'<i>Например: Новосибирск, Санкт-Петербург, Екатеринбург</i>')
 
 
@@ -68,7 +70,7 @@ async def get_city(m: types.Message, state: FSMContext):
     city = m.text.title()
     await state.update_data(city=city)
     await FSMRegister.role.set()
-    await m.answer(f'Замечательно 🤟\n\nТеперь выбери, пожалуйста, свою должность. Только честно 🗿',
+    await m.answer(f'Замечательно 🤟\n\nТеперь выбери свою должность. Только честно 🗿',
                    reply_markup=await other_kb.get_pos_keyboard())
 
 
@@ -79,11 +81,11 @@ async def get_role(call: types.CallbackQuery, state: FSMContext, callback_data: 
     await state.update_data(role=role)
     if role in (5, 6, 7, 8):
         await FSMRegister.traineeship.set()
-        await call.message.answer('Хорошечно, определились. Тогда расскажи немного про ординатуру:\n'
+        await call.message.answer('Отлично, с этим определились. Тогда расскажи немного про ординатуру:\n'
                                'Выбери один из нескольких вариантов ответа:', reply_markup=await other_kb.get_spec_keyboard())
     if role in (9, 10, 11):
         await FSMRegister.med_education.set()
-        await call.message.answer('Хорошечно, определились. Скажи, пожалуйста есть ли у тебя медицинское образование?',
+        await call.message.answer('Отлично, с этим определились. Скажи, пожалуйста, есть ли у тебя медицинское образование?',
                                   reply_markup=await other_kb.get_education_keyboard())
 
 
@@ -96,7 +98,7 @@ async def get_education(c: types.CallbackQuery, state: FSMContext, callback_data
         end_year=None
     )
     await FSMRegister.phone.set()
-    await c.answer('Принял, теперь введи номер телефона')
+    await c.answer('Записал 👌\n\nТеперь пробежимся по формальностям:\nВведи своей номер телефона 📱')
 
 @dp.callback_query_handler(other_kb.register_callback.filter(stage='spec'), state=FSMRegister.traineeship)
 async def get_traineeship(c: types.CallbackQuery, state: FSMContext, callback_data: dict):
@@ -104,7 +106,7 @@ async def get_traineeship(c: types.CallbackQuery, state: FSMContext, callback_da
         await c.answer()
         await state.update_data(traineeship=int(callback_data.get('stage_data')))
         await FSMRegister.profession.set()
-        await c.message.answer('Хорошо, а специальность?')
+        await c.message.answer('Хорошо, а специальность известна?\n<i>Например, ЛОР или неврология</i>')
     elif int(callback_data.get('stage_data')) == 1:
         await c.answer()
         await state.update_data(
@@ -113,7 +115,7 @@ async def get_traineeship(c: types.CallbackQuery, state: FSMContext, callback_da
             start_year=None,
             end_year=None,
         )
-        await c.message.answer('Принял, теперь введи номер телефона.')
+        await c.message.answer('Записал 👌\n\nТеперь пробежимся по формальностям:\nВведи своей номер телефона 📱')
         await FSMRegister.phone.set()
 
 
@@ -121,7 +123,7 @@ async def get_traineeship(c: types.CallbackQuery, state: FSMContext, callback_da
 async def get_profession(m: types.Message, state: FSMContext):
     await state.update_data(profession=m.text)
     await FSMRegister.start_year.set()
-    await m.answer('Супер, напиши, плиз, год начала.')
+    await m.answer('Отличный выбор 😎\n\nНапиши, пожалуйста, год поступления')
 
 
 @dp.message_handler(state=FSMRegister.start_year)
@@ -132,34 +134,39 @@ async def get_start_year(m: types.Message, state: FSMContext):
 
 
 @dp.message_handler(state=FSMRegister.end_year)
-async def get_phone_number(m: types.Message, state: FSMContext):
+async def get_end_year(m: types.Message, state: FSMContext):
     await state.update_data(end_year=m.text)
-    await m.answer('Принял, теперь введи номер телефона.')
+    await m.answer('Записал 👌\n\nТеперь пробежимся по формальностям:\nВведи своей номер телефона 📱')
     await FSMRegister.phone.set()
 
 
 @dp.message_handler(state=FSMRegister.phone)
-async def get_email(m: types.Message, state: FSMContext):
+async def get_phone_number(m: types.Message, state: FSMContext):
     await state.update_data(phone=m.text)
     await FSMRegister.email.set()
-    await m.answer('Принял, теперь напиши свою гугл почту (заканчивается на @gmail.com)')
+    await m.answer('Принял, теперь напиши свою гугл-почту 📧\n(заканчивается на @gmail.com)')
 
 
 @dp.message_handler(state=FSMRegister.email)
-async def get_birthdate(m: types.Message, state: FSMContext):
+async def get_email(m: types.Message, state: FSMContext):
     await state.update_data(email=m.text)
     await FSMRegister.birthdate.set()
-    await m.answer('Принял, осталось только написать дату рождения в формате <i>ДД.ММ.ГГГГ</i>')
+    await m.answer('Огонь, осталось только написать дату рождения в формате <i>ДД.ММ.ГГГГ</i>')
 
 
 @dp.message_handler(state=FSMRegister.birthdate)
 async def finish_register(m: types.Message, state: FSMContext):
-    await state.update_data(bdate=m.text, username='@' + m.from_user.username, chat_id=m.from_user.id)
-    user = await state.get_data()
-    await add_user_array(user)
-    await mysql_db.add_user(tuple(user.values()))
-    await m.answer('Регистрация завершена, добро пожаловать :)', reply_markup=types.ReplyKeyboardRemove())
-    await state.finish()
+    try:
+        birthdate = datetime.strptime(m.text, "%d.%m.%Y")
+        assert birthdate < date(1970, 1, 1), await m.answer("Пошутили и хватит 🙄\nВведи настоящую дату")
+        await state.update_data(bdate=birthdate, username='@' + m.from_user.username, chat_id=m.from_user.id)
+        user = await state.get_data()
+        await mysql_db.add_user(tuple(user.values()))
+        await m.answer('Регистрация завершена, добро пожаловать :)', reply_markup=types.ReplyKeyboardRemove())
+        await state.finish()
+    except ValueError:
+        await m.answer("Это некорректная дата. Пожалуйста, введи дату по шаблону.")
+
 
 
 def register_handlers_other(dp: Dispatcher):
@@ -175,8 +182,10 @@ def register_handlers_other(dp: Dispatcher):
                                        state=FSMRegister.traineeship)
     dp.register_message_handler(get_profession, state=FSMRegister.profession)
     dp.register_message_handler(get_start_year, state=FSMRegister.start_year)
+    dp.register_message_handler(get_end_year, state=FSMRegister.end_year)
     dp.register_message_handler(get_phone_number, state=FSMRegister.phone)
-    dp.register_message_handler(finish_register, state=FSMRegister.phone)
+    dp.register_message_handler(get_email, state=FSMRegister.email)
+    dp.register_message_handler(finish_register, state=FSMRegister.birthdate)
 
 
 
