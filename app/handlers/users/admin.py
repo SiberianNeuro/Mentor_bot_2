@@ -131,7 +131,7 @@ async def load_link(m: types.Message, state: FSMContext):
 
 # Команда на удаление опроса
 async def del_callback_run(c: types.CallbackQuery, callback_data: dict):
-    await mysql_db.sql_delete_command(callback_data.get("action_data"))
+    await mysql_db.delete_exam(callback_data.get("action_data"))
     await c.answer(text='Информация удалена', show_alert=True)
     await c.message.delete()
 
