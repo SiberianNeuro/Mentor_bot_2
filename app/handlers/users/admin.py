@@ -66,6 +66,7 @@ async def load_document(m: types.Message, state: FSMContext):
         await m.answer("Неверно заполнено поле даты переаттестации. Пожалуйста, введи дату в формате "
                        "<i>ДД.ММ.ГГГГ</i> и пришли мне повторно. ")
     else:
+        print(source)
         fullname, stage_id, result_id, score, exam_date, retake_date = source
         user_id = await get_user_id(fullname.strip())
         if user_id is None:

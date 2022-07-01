@@ -115,3 +115,4 @@ async def search_wrapper(resp, m: types.Message):
                                     )
 
 async def user_wrapper():
+    pass
