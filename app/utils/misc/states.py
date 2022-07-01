@@ -3,9 +3,7 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 
 class FSMAdmin(StatesGroup):
     document = State()
-    form = State()
-    status = State()
-    retake = State()
+    confirm = State()
     link = State()
     trainee_name = State()
 

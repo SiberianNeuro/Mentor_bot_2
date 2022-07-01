@@ -23,9 +23,9 @@ async def append_exam(state):
     async with state.proxy() as data:
         with conn.cursor() as cur:
             sql = "INSERT INTO exams (document_id, " \
-                  "score, user_id, stage_id, " \
-                  "result_id, retake_date, link, date) " \
-                  "VALUES (%s, %s, %s, %s, %s, %s, %s, current_timestamp)"
+                  "user_id, stage_id, result_id, " \
+                  "score, date, retake_date, link) " \
+                  "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
             cur.execute(sql, tuple(data.values()))
             conn.commit()
 
@@ -41,8 +41,7 @@ async def item_search(data):
               "JOIN mentor_base.results ON exams.result_id = results.id " \
               "WHERE document_id = %s"
         cur.execute(sql, (data,))
-        result = cur.fetchall()
-        print(result)
+        result = cur.fetchall()[0]
     return result
 
 
@@ -95,7 +94,7 @@ async def add_user(state):
     with conn.cursor() as cur:
         sql = "INSERT INTO staffs (fullname, city, role_id, traineeship_id, profession, " \
           "start_year, end_year, phone, email, birthdate, username, chat_id, reg_date) VALUES " \
-          "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)"
+          "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)"
         cur.execute(sql, state)
         conn.commit()
 

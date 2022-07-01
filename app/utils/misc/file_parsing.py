@@ -20,60 +20,53 @@ async def file_parser(fileid, filename):
     urllib.request.urlretrieve(f'https://api.telegram.org/file/bot{config.tg_bot.token}/{fi}',f'./{name}')
 
     d = docx.Document(filename)
+
     general_table = d.tables[0]
+    retake_date = None
     if "Призывные мероприятия" in d.paragraphs[3].text:
         stage_id = 1
-        scores_table = d.tables[1]
-        result_id = 3
-        retake_date = None
     elif "в середине теоретического цикла обучения" in d.paragraphs[3].text:
         stage_id = 2
-        scores_table = d.tables[1]
-        results_table = d.tables[2]
     elif "при аттестации" in d.paragraphs[3].text:
         stage_id = 3
-        scores_table = d.tables[2]
-        results_table = d.tables[3]
     elif "при переводе" in d.paragraphs[3].text:
         stage_id = 4
-        score = 0.0
-        results_table = d.tables[2]
     else:
         return 0
 
+    scores_table = d.tables[2] if stage_id == 3 else d.tables[1]
+    results_table = d.tables[3] if stage_id == 3 else d.tables[2]
     general = []
     scores = []
     results = []
 
     for r in general_table.rows:
         general.append([cell.text for cell in r.cells])
-    if stage_id != 4:
-        for r in scores_table.rows:
-            scores.append([cell.text for cell in r.cells])
-    if stage_id != 1:
-        for r in results_table.rows:
-            results.append([cell.text for cell in r.cells])
+    for r in scores_table.rows:
+        scores.append([cell.text for cell in r.cells])
+    for r in results_table.rows:
+        results.append([cell.text for cell in r.cells])
 
     fullname = general[0][1]
-    if stage_id != 4:
+    if stage_id == 4:
+        score = 0.0
+    else:
         score = scores[-1][2]
         if score == '':
             return 1
-    elif stage_id != 1:
+    if stage_id == 1:
+        result_id = 3
+    else:
         if results[-1][2] != "":
             result_id = 1
-            retake_date = None
         elif results[-2][2] != "":
             result_id = 2
             try:
                 retake_date = datetime.strptime(results[-2][3], "%d.%m.%Y")
             except ValueError:
                 return 5
-        elif results[-3][2] != "" or results[-4][2] != "":
-            result_id = 3
-            retake_date = None
         else:
-            return 2
+            result_id = 3
     if general[-1][1] != '':
         try:
             exam_date = datetime.strptime(general[-1][1], "%d.%m.%Y")

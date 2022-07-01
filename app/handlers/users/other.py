@@ -158,7 +158,6 @@ async def get_email(m: types.Message, state: FSMContext):
 async def finish_register(m: types.Message, state: FSMContext):
     try:
         birthdate = datetime.strptime(m.text, "%d.%m.%Y")
-        assert birthdate < date(1970, 1, 1), await m.answer("Пошутили и хватит 🙄\nВведи настоящую дату")
         await state.update_data(bdate=birthdate, username='@' + m.from_user.username, chat_id=m.from_user.id)
         user = await state.get_data()
         await mysql_db.add_user(tuple(user.values()))
