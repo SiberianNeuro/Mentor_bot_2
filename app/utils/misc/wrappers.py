@@ -17,7 +17,7 @@ async def report_wrapper(data: tuple, m: types.Message):
         retake_date = data[7].strftime("%d.%m.%Y")
     except AttributeError:
         retake_date = "-"
-    if result == "Аттестация пройдена ✅":
+    if result == "Аттестация пройдена ✅" and stage in ("Опрос на И.О.", "Опрос на врача", "Аттестация стажера L1"):
         await m.answer_document(document_id,
             caption=f'<b>{fullname}</b>\n'
                     f'Формат опроса - {stage}\n'
