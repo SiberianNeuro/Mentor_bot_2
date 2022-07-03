@@ -2,6 +2,8 @@ from dataclasses import dataclass
 
 from environs import Env
 
+import logging
+
 
 @dataclass
 class DbConfig:
@@ -30,8 +32,10 @@ class Config:
 
 
 def load_config(path: str = None):
+
     env = Env()
     env.read_env(path)
+
 
     return Config(
         tg_bot=TgBot(

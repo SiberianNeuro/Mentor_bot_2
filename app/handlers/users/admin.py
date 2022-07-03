@@ -1,29 +1,30 @@
-from datetime import datetime, date
-
 from aiogram.dispatcher import FSMContext
 from aiogram import types, Dispatcher
 from aiogram.dispatcher.filters import Text
 
 from app.db.mysql_db import get_user_id
 from app.utils.misc.wrappers import report_wrapper, search_wrapper
-from loader import dispatcher, bot
 
 from app.filters.admin import IsAdmin
 from app.db import mysql_db
-from app.keyboards import admin_kb, other_kb
-from app.keyboards.admin_kb import get_stage_keyboard, get_result_keyboard, exam_callback, get_overload_keyboard
-from app.utils.misc.states import FSMAdmin
+from app.keyboards.other_kb import get_cancel_button
+from app.keyboards.admin_kb import *
+from app.utils.states import FSMAdmin
 from app.utils.misc.file_parsing import file_parser
 
 
 # Команда входа в админку
 async def admin_start(message: types.Message, state: FSMContext):
+    await message.bot.set_my_commands([
+        types.BotCommand('moderator', 'Вернуться в админ-панель'),
+        types.BotCommand('mailing', 'Рассылка тестов')
+    ])
     await state.finish()
     await message.answer(f'Приветствую тебя, обучатор! 🦾\n\n'
                     f'Что я умею:\n\n'
                     f'👉🏻 Нажми на кнопку <b>"Загрузить"</b>, чтобы передать мне информацию о прошедшей аттестации\n'
                     f'👉🏻 Нажми кнопку <b>"Найти"</b>, чтобы найти информацию о предыдущих аттестациях',
-                         reply_markup=await admin_kb.get_admin_kb())
+                         reply_markup=await get_admin_kb())
     await message.delete()
 
 """Загрузка опроса"""
@@ -34,9 +35,8 @@ async def exam_start(m: types.Message):
     await FSMAdmin.document.set()
     await m.answer('<b>Начинаем загрузку результатов аттестации</b>\n'
                    'Чтобы выйти из режима загрузки, нажми кнопку <b>"Отмена"</b> или напиши /moderator',
-                   reply_markup=await other_kb.get_cancel_button())
+                   reply_markup=await get_cancel_button())
     await m.answer('Сейчас тебе нужно прислать мне протокол опроса 📜')
-
 
 # Загрузка документа, парсинг документа, переход к выбору формата опроса
 async def load_document(m: types.Message, state: FSMContext):
@@ -132,7 +132,7 @@ async def del_callback_run(c: types.CallbackQuery, callback_data: dict):
 # Начало поиска: запрос ФИО
 async def start_search(message: types.Message):
     await message.reply('👇🏼 Введи Ф.И.О. сотрудника полностью или по отдельности',
-                            reply_markup=await other_kb.get_cancel_button())
+                            reply_markup=await get_cancel_button())
     await FSMAdmin.trainee_name.set()
 
 
@@ -143,7 +143,7 @@ async def search_item(m: types.Message, state: FSMContext):
     read = await mysql_db.name_search(data['trainee_name'])
     if not read:
         await bot.send_message(m.from_user.id, 'Информации об этом сотруднике нет 🤔',
-                               reply_markup=await admin_kb.get_admin_kb())
+                               reply_markup=await get_admin_kb())
     else:
         await search_wrapper(read, m=m)
         await bot.send_message(m.from_user.id, 'Готово!👌', reply_markup=admin_kb.button_case_admin)

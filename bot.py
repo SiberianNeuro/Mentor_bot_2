@@ -2,7 +2,7 @@ import logging
 
 from aiogram.utils import executor
 
-from app.utils.misc.set_bot_commands import set_default_commands
+from app.utils.set_bot_commands import set_default_commands
 from loader import dispatcher
 
 from app.handlers.users import admin, other, overlord, mailing_admin
@@ -11,11 +11,11 @@ from app.handlers.errors import error_handler
 
 async def on_startup(dispatcher):
     await set_default_commands(dispatcher)
-    logging.basicConfig(#filename="logfile.log",
-                        #filemode="w",
+    logging.basicConfig(filename="logfile.log",
+                        filemode="w",
                         format=u"%(filename)s [LINE:%(lineno)d] #%(levelname)-8s [%(asctime)s]  %(message)s",
-                        # level=logging.INFO,
-                        level=logging.DEBUG,  # Можно заменить на другой уровень логгирования.
+                        level=logging.INFO,
+                        # level=logging.DEBUG,  # Можно заменить на другой уровень логгирования.
                         )
     admin.register_handlers_admin(dispatcher)
     mailing_admin.register_mailing_handlers(dispatcher)

@@ -1,9 +1,9 @@
 import asyncio
 
 from app.db.mysql_db import active_users, get_current_roles
-from loader import dispatcher as dp, bot
+from loader import bot
 from app.filters.admin import IsAdmin
-from app.utils.misc.states import Mailing
+from app.utils.states import Mailing
 from app.keyboards.admin_kb import get_mailing_keyboard, mailing_callback, get_execute_button, \
     get_roles_keyboard, text_switch_button
 

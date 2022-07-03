@@ -1,15 +1,14 @@
-from datetime import datetime, date
+from datetime import datetime
 
 from aiogram.dispatcher import FSMContext
 from aiogram import types, Dispatcher
 
-from app.db.mysql_db import admins_ids
+from app.filters import IsAdmin
 from app.filters.other import is_register
-from app.utils.misc.sheets_append import add_user_array
-from loader import dispatcher as dp, bot
+from loader import dispatcher as dp
 from aiogram.dispatcher.filters import Text, CommandStart
 from app.keyboards import other_kb
-from app.utils.misc.states import FSMRegister
+from app.utils.states import FSMRegister
 from app.db import mysql_db
 
 
@@ -20,7 +19,7 @@ async def commands_start(m: types.Message, state: FSMContext):
     await m.answer_sticker('CAACAgIAAxkBAAIE4GKSGruXCE8S-gM_iIJyaTbM9TGYAAJPAAOtZbwUa5EcjYesr5MkBA')
     await m.answer('Привет ✌\n\nЯ помощник в медицинском отделе ДОК 🤖\n'
                                                      'Чтобы узнать список команд, введи <b>/help</b>')
-    if await is_register(m.from_user.id):
+    if await is_register(m.from_user.id) or IsAdmin():
         await m.answer('Вижу, что ты уже зарегистрирован 🤠\n\nЧем могу помочь?', reply_markup=types.ReplyKeyboardRemove())
     else:
         await m.answer('Вижу, что ты еще не проходил регистрацию 😱\n\n⬇️Скорее жми кнопку и начнём знакомиться⬇️',

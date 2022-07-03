@@ -1,9 +1,12 @@
 import pymysql.cursors
+import logging
+
 from aiogram import Bot
 from aiogram.contrib.fsm_storage.redis import RedisStorage2
 from aiogram.dispatcher import Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.types import ParseMode
+
 from app.services.config import load_config
 
 config = load_config(".env")
@@ -19,5 +22,4 @@ conn = pymysql.connect(
             cursorclass=pymysql.cursors.Cursor,
             charset="utf8mb4",
         )
-if conn:
-    print('Database connected.')
+
