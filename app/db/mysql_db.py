@@ -73,7 +73,7 @@ async def sql_delete_command(data):
 async def get_raise_user(id: int):
     with conn.cursor() as cur:
         sql = "UPDATE mentor_base.staffs " \
-              "SET role_id = IF(role_id > 6, role_id -1, role_id) " \
+              "SET role_id = IF(role_id IN (7, 8), role_id -1, IF(role_id = 9, role_id + 1, role_id)) " \
               "WHERE id = %s"
         cur.execute(sql, (id,))
         conn.commit()

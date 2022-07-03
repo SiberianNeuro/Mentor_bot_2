@@ -22,7 +22,7 @@ async def get_result_buttons():
 # Список должностей
 async def get_role_buttons():
     with conn.cursor() as cur:
-        sql = "SELECT id, name FROM roles WHERE id > 4"
+        sql = "SELECT id, name FROM roles WHERE id BETWEEN 5 AND 11"
         cur.execute(sql)
         result = cur.fetchall()
     return result

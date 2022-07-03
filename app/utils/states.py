@@ -1,6 +1,7 @@
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
 
+# Состояния для опросов
 class FSMAdmin(StatesGroup):
     document = State()
     confirm = State()
@@ -8,6 +9,7 @@ class FSMAdmin(StatesGroup):
     trainee_name = State()
 
 
+# Состояния для регистрации пользователя
 class FSMRegister(StatesGroup):
     name = State()
     city = State()
@@ -22,6 +24,7 @@ class FSMRegister(StatesGroup):
     birthdate = State()
 
 
+# Состояния для рассылки
 class Mailing(StatesGroup):
     workers = State()
     process_workers = State()

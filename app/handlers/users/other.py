@@ -19,7 +19,7 @@ async def commands_start(m: types.Message, state: FSMContext):
     await m.answer_sticker('CAACAgIAAxkBAAIE4GKSGruXCE8S-gM_iIJyaTbM9TGYAAJPAAOtZbwUa5EcjYesr5MkBA')
     await m.answer('Привет ✌\n\nЯ помощник в медицинском отделе ДОК 🤖\n'
                                                      'Чтобы узнать список команд, введи <b>/help</b>')
-    if await is_register(m.from_user.id) or IsAdmin():
+    if await is_register(m.from_user.id):
         await m.answer('Вижу, что ты уже зарегистрирован 🤠\n\nЧем могу помочь?', reply_markup=types.ReplyKeyboardRemove())
     else:
         await m.answer('Вижу, что ты еще не проходил регистрацию 😱\n\n⬇️Скорее жми кнопку и начнём знакомиться⬇️',
@@ -69,7 +69,15 @@ async def get_city(m: types.Message, state: FSMContext):
     city = m.text.title()
     await state.update_data(city=city)
     await FSMRegister.role.set()
-    await m.answer(f'Замечательно 🤟\n\nТеперь выбери свою должность. Только честно 🗿',
+    await m.answer('Замечательно 🤟\nТеперь выбери свою должность:\n\n'
+                   '<b>Врач-стажер:</b> ты только что трудоустроился в "ПризываНет" на ставку врача и еще проходишь обучение\n\n'
+                   '<b>И.О. врача:</b> ты закончил обучение и работаешь в кластере, но не проходил аттестацию на врача\n\n'
+                   '<b>Врач:</b> ты прошел аттестацию на врача и полностью закончил стажировку\n\n'
+                   '<b>Сеньор врачей:</b> ты руководишь врачами своего кластера\n\n'
+                   '<b>Стажер L1:</b> ты только что трудоустроился в "ПризываНет" на должность младшего специалиста поддержки клиентов\n\n'
+                   '<b>Сотрудник L1:</b> ты прошел стажировку и состоишь в команде специалистов поддержки\n\n'
+                   '<b>Сеньор L1:</b> ты руководишь командой специалистов поддержки\n\n'
+                   'Выбирай честно 🗿',
                    reply_markup=await other_kb.get_pos_keyboard())
 
 
@@ -81,11 +89,18 @@ async def get_role(call: types.CallbackQuery, state: FSMContext, callback_data: 
     if role in (5, 6, 7, 8):
         await FSMRegister.traineeship.set()
         await call.message.answer('Отлично, с этим определились. Тогда расскажи немного про ординатуру:\n'
-                               'Выбери один из нескольких вариантов ответа:', reply_markup=await other_kb.get_spec_keyboard())
+                                  'Выбери один из нескольких вариантов ответа:\n\n'
+                                  '<b>Не поступал и не собираюсь:</b> ты не был в ординатуре и не хочешь туда\n\n'
+                                  '<b>Не поступал, но собираюсь:</b> ты не был в ординатуре, но хочешь и будешь туда поступать\n\n'
+                                  '<b>Учусь прямо сейчас:</b> ты обучаешься в ординатуре на данный момент\n\n'
+                                  '<b>Закончил обучение:</b> ты уже выпустился из ординатуры с дипломом на руках',
+                                  reply_markup=await other_kb.get_spec_keyboard())
+        await call.message.delete()
     if role in (9, 10, 11):
         await FSMRegister.med_education.set()
         await call.message.answer('Отлично, с этим определились. Скажи, пожалуйста, есть ли у тебя медицинское образование?',
                                   reply_markup=await other_kb.get_education_keyboard())
+        await call.message.delete()
 
 
 @dp.callback_query_handler(other_kb.register_callback.filter(stage='education'), state=FSMRegister.med_education)
@@ -98,6 +113,8 @@ async def get_education(c: types.CallbackQuery, state: FSMContext, callback_data
     )
     await FSMRegister.phone.set()
     await c.answer('Записал 👌\n\nТеперь пробежимся по формальностям:\nВведи своей номер телефона 📱')
+    await c.message.delete()
+
 
 @dp.callback_query_handler(other_kb.register_callback.filter(stage='spec'), state=FSMRegister.traineeship)
 async def get_traineeship(c: types.CallbackQuery, state: FSMContext, callback_data: dict):
@@ -106,6 +123,7 @@ async def get_traineeship(c: types.CallbackQuery, state: FSMContext, callback_da
         await state.update_data(traineeship=int(callback_data.get('stage_data')))
         await FSMRegister.profession.set()
         await c.message.answer('Хорошо, а специальность известна?\n<i>Например, ЛОР или неврология</i>')
+        await c.message.delete()
     elif int(callback_data.get('stage_data')) == 1:
         await c.answer()
         await state.update_data(
@@ -116,6 +134,7 @@ async def get_traineeship(c: types.CallbackQuery, state: FSMContext, callback_da
         )
         await c.message.answer('Записал 👌\n\nТеперь пробежимся по формальностям:\nВведи своей номер телефона 📱')
         await FSMRegister.phone.set()
+        await c.message.delete()
 
 
 @dp.message_handler(state=FSMRegister.profession)
@@ -145,13 +164,11 @@ async def get_phone_number(m: types.Message, state: FSMContext):
     await FSMRegister.email.set()
     await m.answer('Принял, теперь напиши свою гугл-почту 📧\n(заканчивается на @gmail.com)')
 
-
 @dp.message_handler(state=FSMRegister.email)
 async def get_email(m: types.Message, state: FSMContext):
     await state.update_data(email=m.text)
     await FSMRegister.birthdate.set()
     await m.answer('Огонь, осталось только написать дату рождения в формате <i>ДД.ММ.ГГГГ</i>')
-
 
 @dp.message_handler(state=FSMRegister.birthdate)
 async def finish_register(m: types.Message, state: FSMContext):
@@ -160,7 +177,7 @@ async def finish_register(m: types.Message, state: FSMContext):
         await state.update_data(bdate=birthdate, username='@' + m.from_user.username, chat_id=m.from_user.id)
         user = await state.get_data()
         await mysql_db.add_user(tuple(user.values()))
-        await m.answer('Регистрация завершена, добро пожаловать :)', reply_markup=types.ReplyKeyboardRemove())
+        await m.answer('Спасибо, что уделил мне время 👏\nРегистрация завершена :)', reply_markup=types.ReplyKeyboardRemove())
         await state.finish()
     except ValueError:
         await m.answer("Это некорректная дата. Пожалуйста, введи дату по шаблону.")

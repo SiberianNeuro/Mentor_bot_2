@@ -47,9 +47,6 @@ async def load_document(m: types.Message, state: FSMContext):
     elif source == 1:
         await m.answer("Я не нашел итоговое количество баллов. Внимательно посмотри, заполнил ли ты их. Если не заполнил - "
                        "заполняй и присылай мне протокол повторно.")
-    elif source == 2:
-        await m.answer("Итоги аттестации некорректные. Проверь, всё ли ты заполнил в этой таблице. Как поправишь - "
-                       "присылай мне протокол повторно.")
     elif source == 3:
         await m.answer("Поле 'Дата проведения проф.опроса' заполнено некорректно. Пожалуйста, введи дату в формате "
                        "<i>ДД.ММ.ГГГГ</i> и пришли мне повторно.")
@@ -110,9 +107,8 @@ async def confirm_document(c: types.CallbackQuery, callback_data: dict):
 async def load_link(m: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['link'] = m.text
-        if data['result_id'] == 3 and data['stage_id'] in (3, 4):
+        if data['result_id'] == 3 and data['stage_id'] in (3, 4, 5):
             await mysql_db.get_raise_user(data['user_id'])
-        print(data.values())
     await mysql_db.append_exam(state)
     read = await mysql_db.item_search(data["document"])
     await report_wrapper(read, m=m)
@@ -142,20 +138,20 @@ async def search_item(m: types.Message, state: FSMContext):
         data['trainee_name'] = m.text.title()
     read = await mysql_db.name_search(data['trainee_name'])
     if not read:
-        await bot.send_message(m.from_user.id, 'Информации об этом сотруднике нет 🤔',
+        await m.answer('Информации об этом сотруднике нет 🤔',
                                reply_markup=await get_admin_kb())
     else:
         await search_wrapper(read, m=m)
-        await bot.send_message(m.from_user.id, 'Готово!👌', reply_markup=admin_kb.button_case_admin)
+        await m.answer('Готово!👌', reply_markup=await get_admin_kb())
     await state.finish()
 
 
 def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(admin_start, IsAdmin(), commands=['moderator'], state="*")
-    dp.register_message_handler(exam_start, IsAdmin(), Text(equals='Загрузить'), state=None)
+    dp.register_message_handler(exam_start, IsAdmin(), Text(equals='Загрузить ⏏'), state=None)
     dp.register_message_handler(load_document, IsAdmin(), content_types=['document'], state=FSMAdmin.document)
     dp.register_callback_query_handler(confirm_document, IsAdmin(), exam_callback.filter(action='overload'), state=FSMAdmin.confirm)
     dp.register_message_handler(load_link, IsAdmin(), state=FSMAdmin.link)
     dp.register_callback_query_handler(del_callback_run, IsAdmin(), exam_callback.filter(action='delete'))
-    dp.register_message_handler(start_search, IsAdmin(), Text(equals='Найти'), state=None)
+    dp.register_message_handler(start_search, IsAdmin(), Text(equals='Найти 👀'), state=None)
     dp.register_message_handler(search_item, IsAdmin(), state=FSMAdmin.trainee_name)

@@ -5,15 +5,16 @@ from datetime import datetime, date
 
 from loader import config, bot
 
-
+# Парсер для протоколов опроса
 async def file_parser(fileid, filename):
     """
-    Скачиваем документ с сервера телеграма и парсим его
-    param: fileid:  айдишник файла на сервере телеграм (не уникальный)
-    param: filename: наименование файла на сервере телеграм
-    param: with_retake: если стажер идет на пересдачу, дополнительно парсим дату пересдачи.
-    По умолчанию не парсим.
+
+    :param fileid: ИД файла в телеге
+    :param filename: имя файла в телеге
+    :return: тапл из полного имени пользователя, айди формата опроса, айди результата опроса,
+    баллы за опрос, дата опроса и дата пересдачи
     """
+
     file_info = await bot.get_file(fileid)
     fi = file_info.file_path
     name = filename
@@ -25,14 +26,16 @@ async def file_parser(fileid, filename):
     retake_date = None
     if "Призывные мероприятия" in d.paragraphs[3].text:
         stage_id = 1
-    elif "в середине теоретического цикла обучения" in d.paragraphs[3].text:
+    elif "в середине теоретического цикла" in d.paragraphs[3].text:
         stage_id = 2
     elif "при аттестации" in d.paragraphs[3].text:
         stage_id = 3
     elif "при переводе" in d.paragraphs[3].text:
         stage_id = 4
+    elif "при экзаменации" in d.paragraphs[3].text:
+        stage_id = 5
     else:
-        return 0
+        return 0  # Не распознал протокол опроса
 
     scores_table = d.tables[2] if stage_id == 3 else d.tables[1]
     results_table = d.tables[3] if stage_id == 3 else d.tables[2]
@@ -53,7 +56,7 @@ async def file_parser(fileid, filename):
     else:
         score = scores[-1][2]
         if score == '':
-            return 1
+            return 1  # Не нашел итоговое количество баллов
     if stage_id == 1:
         result_id = 3
     else:
@@ -64,16 +67,16 @@ async def file_parser(fileid, filename):
             try:
                 retake_date = datetime.strptime(results[-2][3], "%d.%m.%Y")
             except ValueError:
-                return 5
+                return 5 # Неверно записана дата переопроса
         else:
             result_id = 3
     if general[-1][1] != '':
         try:
             exam_date = datetime.strptime(general[-1][1], "%d.%m.%Y")
         except ValueError:
-            return 3
+            return 3  # Неверно написана дата опроса
     else:
-        return 4
+        return 4  # Нет даты опроса
     try:
         score = float(score.replace(',', '.'))
     except AttributeError:
