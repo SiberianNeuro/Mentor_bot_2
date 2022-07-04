@@ -20,8 +20,9 @@ async def on_startup(dispatcher):
     admin.register_handlers_admin(dispatcher)
     mailing_admin.register_mailing_handlers(dispatcher)
     overlord.register_handlers_overlord(dispatcher)
-    error_handler.register_error_handler(dispatcher)
     other.register_handlers_other(dispatcher)
+    error_handler.register_error_handler(dispatcher)
+
 
 if __name__ == '__main__':
     executor.start_polling(dispatcher, skip_updates=True, on_startup=on_startup)
