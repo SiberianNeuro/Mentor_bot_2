@@ -17,7 +17,7 @@ async def admins_ids():
         cur = conn.cursor()
         sql = "SELECT chat_id FROM admins"
         cur.execute(sql)
-        result = cur.fetchone()
+        result = [i[0] for i in cur.fetchall()]
     return result
 
 # Добавить опрос в БД
