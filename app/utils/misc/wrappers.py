@@ -14,7 +14,7 @@ async def report_wrapper(data: tuple, m: types.Message):
     print(data)
     id, document_id, fullname, stage, result, score, link = data[:7]
     retake_date = data[7].strftime("%d.%m.%Y") if data[7] is not None else "-"
-    if result == "Аттестация пройдена ✅" and stage in ("Опрос на И.О.", "Опрос на врача", "Аттестация стажера L1"):
+    if result == "Аттестация пройдена ✅":
         await m.answer_document(document_id,
             caption=f'<b>{fullname}</b>\n'
                     f'Формат опроса - {stage}\n'
@@ -24,10 +24,11 @@ async def report_wrapper(data: tuple, m: types.Message):
             reply_markup=await get_delete_button(id)
         )
         await m.answer('Мы закончили, мы молодцы 👌', reply_markup=await admin_kb.get_admin_kb())
-        await bot.send_document(
-            -781832035, document_id,
-            caption=f'<b>{fullname}</b>\nФормат опроса: {stage}\nСтатус аттестации: {result}\nСсылка YT: {link}'
-        )
+        if stage in ("Опрос на И.О.", "Опрос на врача", "Аттестация стажера L1"):
+            await bot.send_document(
+                -781832035, document_id,
+                caption=f'<b>{fullname}</b>\nФормат опроса: {stage}\nСтатус аттестации: {result}\nСсылка YT: {link}'
+            )
         await bot.send_document(
             -1001776821827, document_id,
             caption=f'<b>{fullname}</b>\nФормат опроса: {stage}\nСтатус аттестации: {result}\nСсылка YT: {link}'
@@ -40,8 +41,7 @@ async def report_wrapper(data: tuple, m: types.Message):
                     f'Набрано баллов - {score}\n'
                     f'<i>Последняя аттестация. Увольнение сотрудника</i>\n'
                     f'Ссылка YT: {link}',
-            reply_markup=await get_delete_button(id)
-        )
+            reply_markup=await get_delete_button(id))
         await m.answer('Мы закончили, мы молодцы 👌', reply_markup=await admin_kb.get_admin_kb())
         await bot.send_document(
             -781832035, document_id,

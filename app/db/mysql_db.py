@@ -45,7 +45,7 @@ async def item_search(data):
               "JOIN mentor_base.results ON exams.result_id = results.id " \
               "WHERE document_id = %s"
         cur.execute(sql, (data,))
-        result = cur.fetchall()[0]
+        result = cur.fetchone()
     return result
 
 
