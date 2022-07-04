@@ -1,7 +1,7 @@
 import asyncio
 
 from app.db.mysql_db import active_users, get_current_roles
-from loader import bot
+from loader import bot, dispatcher as dp
 from app.filters.admin import IsAdmin
 from app.utils.states import Mailing
 from app.keyboards.admin_kb import get_mailing_keyboard, mailing_callback, get_execute_button, \
@@ -14,6 +14,7 @@ from aiogram.dispatcher import FSMContext
 
 
 # Стартовый хэндлер, вход в состояние загрузки ролей
+@dp.message_handler(IsAdmin(), commands=['mailing'])
 async def mailing(m: types.Message, state: FSMContext):
     await state.finish()
     await m.answer("📣 <b>Начинаем подготовку к рассылке тестов</b>\n\nДля начала выбери должности, которым будем рассылать тесты."
@@ -22,6 +23,7 @@ async def mailing(m: types.Message, state: FSMContext):
 
 
 # Загрузка первой роли, потом предложение выбрать дополнительную роль или подтвердить текущие
+@dp.callback_query_handler(IsAdmin(), mailing_callback.filter(action='worker'), state=Mailing.workers)
 async def get_workers(c: types.CallbackQuery, state: FSMContext, callback_data: dict):
     roles = []
     roles.append(callback_data.get('c_data'))
@@ -34,6 +36,8 @@ async def get_workers(c: types.CallbackQuery, state: FSMContext, callback_data: 
 
 # Переходный хэндлер: если была нажата кнопка "подтвердить", то начинается проверка ролей,
 # если кнопка "загрузить", то предлагается выбрать еще одну роль
+@dp.callback_query_handler(IsAdmin(), mailing_callback.filter(action='load'), state=Mailing.workers)
+@dp.callback_query_handler(IsAdmin(), mailing_callback.filter(action='confirm'), state=Mailing.workers)
 async def chose_workers(c: types.CallbackQuery, state: FSMContext, callback_data: dict):
     if callback_data.get("action") == 'load':
         await c.answer()
@@ -56,6 +60,7 @@ async def chose_workers(c: types.CallbackQuery, state: FSMContext, callback_data
 
 
 # Загрузка второй и последующих ролей, смена FSM состояния
+@dp.callback_query_handler(mailing_callback.filter(action='worker'), state=Mailing.process_workers)
 async def more_workers(c: types.CallbackQuery, state: FSMContext, callback_data: dict):
     await c.answer()
     async with state.proxy() as data:
@@ -69,6 +74,7 @@ async def more_workers(c: types.CallbackQuery, state: FSMContext, callback_data:
 
 
 # После подтверждения проверки ролей высылаем запрос на ССЫЛКУ на тест
+@dp.callback_query_handler(IsAdmin(), mailing_callback.filter(action='execute'), state=Mailing.workers)
 async def start_text(c: types.CallbackQuery):
     await c.answer()
     await c.message.answer('Хорошо, пришли мне ссылку на тест 🔗')
@@ -76,6 +82,7 @@ async def start_text(c: types.CallbackQuery):
 
 
 # Прием первой ссылки на тест текстовым сообщением, развилка на подтверждение или повторную загрузку
+@dp.message_handler(IsAdmin(), state=Mailing.start_mailing)
 async def start_mailing(m: types.Message, state: FSMContext):
     text_list = []
     text_list.append(m.text)
@@ -86,6 +93,8 @@ async def start_mailing(m: types.Message, state: FSMContext):
 
 # Переходный хэндлер: если была нажата кнопка "подтвердить", то начинается проверка ссылок,
 # если кнопка "загрузить", то предлагается добавить еще один текст
+@dp.callback_query_handler(IsAdmin(), mailing_callback.filter(action='load'), state=Mailing.start_mailing)
+@dp.callback_query_handler(IsAdmin(), mailing_callback.filter(action='confirm'), state=Mailing.start_mailing)
 async def chose_mailing(c: types.CallbackQuery, state: FSMContext, callback_data: dict):
     if callback_data.get("action") == 'load':
         await c.answer()
@@ -105,6 +114,7 @@ async def chose_mailing(c: types.CallbackQuery, state: FSMContext, callback_data
 
 
 # Загрузка второго и последующих текстов
+@dp.message_handler(state=Mailing.process_mailing)
 async def process_mailing(m: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['text_list'].append(m.text)
@@ -115,6 +125,7 @@ async def process_mailing(m: types.Message, state: FSMContext):
 
 # После подтверждения текстов и ролей забираем из БД все ID с соответствующими ролями, затем умножаем массив с
 # ссылками до длинны списка пользователей и рассылаем по порядку
+@dp.callback_query_handler(mailing_callback.filter(action='execute'), state="*")
 async def execute_mailing(c: types.CallbackQuery, state: FSMContext):
     await c.message.answer('Пристегните ремни, начинаем рассылку 😎')
     async with state.proxy() as data:
