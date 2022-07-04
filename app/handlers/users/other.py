@@ -1,4 +1,5 @@
 from datetime import datetime
+import logging
 
 from aiogram.dispatcher import FSMContext
 from aiogram import types, Dispatcher
@@ -178,6 +179,7 @@ async def finish_register(m: types.Message, state: FSMContext):
         await mysql_db.add_user(tuple(user.values()))
         await m.answer('Спасибо, что уделил мне время 👏\nРегистрация завершена :)', reply_markup=types.ReplyKeyboardRemove())
         await state.finish()
+        logging.info(f'User {m.from_user.username} successfully registered.')
     except ValueError:
         await m.answer("Это некорректная дата. Пожалуйста, введи дату по шаблону.")
 
