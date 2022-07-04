@@ -1,10 +1,9 @@
 from datetime import datetime
-import logging
+from loguru import logger
 
 from aiogram.dispatcher import FSMContext
 from aiogram import types, Dispatcher
 
-from app.filters import IsAdmin
 from app.filters.other import is_register
 from loader import dispatcher as dp
 from aiogram.dispatcher.filters import Text, CommandStart
@@ -34,6 +33,7 @@ async def start_register(c: types.CallbackQuery):
         await c.message.delete()
     else:
         await c.answer()
+        logger.info(f'{c.from_user.username} начал(-а) регистрацию')
         await FSMRegister.name.set()
         await c.message.answer('Давай знакомиться✌️\n\n'
                                'Если вдруг передумаешь регистрироваться, либо что-то напишешь не так,'
@@ -179,7 +179,7 @@ async def finish_register(m: types.Message, state: FSMContext):
         await mysql_db.add_user(tuple(user.values()))
         await m.answer('Спасибо, что уделил мне время 👏\nРегистрация завершена :)', reply_markup=types.ReplyKeyboardRemove())
         await state.finish()
-        logging.info(f'User {m.from_user.username} successfully registered.')
+        logger.info(f'{m.from_user.username} успешно зарегистрировался')
     except ValueError:
         await m.answer("Это некорректная дата. Пожалуйста, введи дату по шаблону.")
 

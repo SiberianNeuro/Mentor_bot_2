@@ -2,6 +2,8 @@ from aiogram.dispatcher import FSMContext
 from aiogram import types, Dispatcher
 from aiogram.dispatcher.filters import Text
 
+from loguru import logger
+
 from app.db.mysql_db import get_user_id
 from app.utils.misc.wrappers import report_wrapper, search_wrapper
 
@@ -115,7 +117,9 @@ async def load_link(m: types.Message, state: FSMContext):
         data['link'] = m.text
         if data['result_id'] == 3 and data['stage_id'] in (3, 4, 5):
             await mysql_db.get_raise_user(data['user_id'])
+            logger.info(f'Пользователь бота №{data["user_id"]} повышен.')
     await mysql_db.append_exam(state)
+    logger.info(f'{m.from_user.username} внес результаты опроса в базу.')
     read = await mysql_db.item_search(data["document"])
     await report_wrapper(read, m=m)
     await state.finish()
@@ -124,7 +128,8 @@ async def load_link(m: types.Message, state: FSMContext):
 # Команда на удаление опроса
 @dp.callback_query_handler(IsAdmin(), exam_callback.filter(action='delete'))
 async def del_callback_run(c: types.CallbackQuery, callback_data: dict):
-    await mysql_db.sql_delete_command(callback_data.get("action_data"))
+    await mysql_db.delete_exam(callback_data.get("action_data"))
+    logger.info(f'{c.from_user.username} удалил(-а) запись аттестации.')
     await c.answer(text='Информация удалена', show_alert=True)
     await c.message.delete()
 
@@ -146,6 +151,7 @@ async def search_item(m: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['trainee_name'] = m.text.title()
     read = await mysql_db.name_search(data['trainee_name'])
+    logger.info(f'{m.from_user.username} выполнил поиск опросов по запросу {data["trainee_name"]}')
     if not read:
         await m.answer('Информации об этом сотруднике нет 🤔',
                                reply_markup=await get_admin_kb())

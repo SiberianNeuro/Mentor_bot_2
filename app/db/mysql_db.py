@@ -37,12 +37,12 @@ async def append_exam(state):
 async def item_search(data):
     with mysql_connection() as conn:
         cur = conn.cursor()
-        sql = "SELECT exams.id, exams.document_id, staffs.fullname, stages.stage, results.result, " \
-              "exams.score, exams.link, exams.retake_date " \
-              "FROM mentor_base.exams " \
-              "JOIN mentor_base.staffs ON exams.user_id = staffs.id " \
-              "JOIN mentor_base.stages ON exams.stage_id = stages.id " \
-              "JOIN mentor_base.results ON exams.result_id = results.id " \
+        sql = "SELECT ex.id, ex.document_id, s.fullname, st.stage, r.result, " \
+              "ex.score, ex.link, ex.retake_date " \
+              "FROM exams ex " \
+              "JOIN staffs s ON ex.user_id = s.id " \
+              "JOIN stages st ON ex.stage_id = st.id " \
+              "JOIN results r ON ex.result_id = r.id " \
               "WHERE document_id = %s"
         cur.execute(sql, (data,))
         result = cur.fetchone()
@@ -53,21 +53,20 @@ async def item_search(data):
 async def name_search(data):
     with mysql_connection() as conn:
         cur = conn.cursor()
-        sql = "SELECT exams.id, exams.document_id, staffs.fullname, stages.stage, results.result, " \
-              "exams.score, exams.link, exams.retake_date " \
-              "FROM mentor_base.exams " \
-              "JOIN mentor_base.staffs ON exams.user_id = staffs.id " \
-              "JOIN mentor_base.stages ON exams.stage_id = stages.id " \
-              "JOIN mentor_base.results ON exams.result_id = results.id " \
-              "WHERE staffs.fullname LIKE %s"
+        sql = "SELECT ex.id, ex.document_id, s.fullname, st.stage, r.result, " \
+              "ex.score, ex.link, ex.retake_date " \
+              "FROM exams ex " \
+              "JOIN staffs s ON ex.user_id = s.id " \
+              "JOIN stages st ON ex.stage_id = st.id " \
+              "JOIN results r ON ex.result_id = r.id " \
+              "WHERE s.fullname LIKE %s"
         cur.execute(sql, ('%' + data + '%',))
         result = cur.fetchall()
-        print(result)
     return result
 
 
 # Удалить запись об опросе
-async def sql_delete_command(data):
+async def delete_exam(data):
     with mysql_connection() as conn:
         cur = conn.cursor()
         sql = "DELETE FROM exams WHERE id = %s"
@@ -79,7 +78,7 @@ async def sql_delete_command(data):
 async def get_raise_user(id: int):
     with mysql_connection() as conn:
         cur = conn.cursor()
-        sql = "UPDATE mentor_base.staffs " \
+        sql = "UPDATE staffs " \
               "SET role_id = IF(role_id IN (7, 8), role_id -1, IF(role_id = 9, role_id + 1, role_id)) " \
               "WHERE id = %s"
         cur.execute(sql, (id,))
@@ -110,10 +109,10 @@ async def add_user(state):
 async def get_user(name):
     with mysql_connection() as conn:
         cur = conn.cursor()
-        sql = "SELECT s.id, fullname, username, r.name, city, t.stage, profession, start_year, end_year " \
-              "phone, email FROM mentor_base.staffs s " \
-              "JOIN traineeships t on t.id = staffs.traineeship_id " \
-              "JOIN roles r on r.id = staffs.role_id " \
+        sql = "SELECT s.id, fullname, username, r.name, city, t.stage, profession, start_year, end_year, " \
+              "phone, email FROM staffs s " \
+              "JOIN traineeships t on t.id = s.traineeship_id " \
+              "JOIN roles r on r.id = s.role_id " \
               "WHERE fullname = %s AND active = 1"
         cur.execute(sql, name)
         result = cur.fetchall()
