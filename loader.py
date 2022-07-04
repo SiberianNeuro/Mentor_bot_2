@@ -25,5 +25,4 @@ def mysql_connection():
                 cursorclass=pymysql.cursors.Cursor,
                 charset="utf8mb4",
             )
-    if conn:
     return conn
