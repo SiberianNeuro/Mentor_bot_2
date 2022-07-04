@@ -4,8 +4,8 @@ from loader import mysql_connection
 """Запросы от администратора"""
 #Вытащить айдишник юзера
 async def get_user_id(data):
-    conn = mysql_connection()
-    with conn.cursor() as cur:
+    with mysql_connection() as conn:
+        cur = conn.cursor()
         sql = "SELECT id FROM staffs WHERE fullname = %s"
         cur.execute(sql, (data,))
         result = cur.fetchall()
@@ -13,8 +13,8 @@ async def get_user_id(data):
 
 #Лист админских ИД
 async def admins_ids():
-    conn = mysql_connection()
-    with conn.cursor() as cur:
+    with mysql_connection() as conn:
+        cur = conn.cursor()
         sql = "SELECT chat_id FROM admins"
         cur.execute(sql)
         result = cur.fetchone()
@@ -23,8 +23,8 @@ async def admins_ids():
 # Добавить опрос в БД
 async def append_exam(state):
     async with state.proxy() as data:
-        conn = mysql_connection()
-        with conn.cursor() as cur:
+        with mysql_connection() as conn:
+            cur = conn.cursor()
             sql = "INSERT INTO exams (document_id, " \
                   "user_id, stage_id, result_id, " \
                   "score, date, retake_date, link) " \
@@ -35,8 +35,8 @@ async def append_exam(state):
 
 # Найти опрос по айдишнику документа
 async def item_search(data):
-    conn = mysql_connection()
-    with conn.cursor() as cur:
+    with mysql_connection() as conn:
+        cur = conn.cursor()
         sql = "SELECT exams.id, exams.document_id, staffs.fullname, stages.stage, results.result, " \
               "exams.score, exams.link, exams.retake_date " \
               "FROM mentor_base.exams " \
@@ -51,8 +51,8 @@ async def item_search(data):
 
 # Найти все опросы по ФИО стажера
 async def name_search(data):
-    conn = mysql_connection()
-    with conn.cursor() as cur:
+    with mysql_connection() as conn:
+        cur = conn.cursor()
         sql = "SELECT exams.id, exams.document_id, staffs.fullname, stages.stage, results.result, " \
               "exams.score, exams.link, exams.retake_date " \
               "FROM mentor_base.exams " \
@@ -68,8 +68,8 @@ async def name_search(data):
 
 # Удалить запись об опросе
 async def sql_delete_command(data):
-    conn = mysql_connection()
-    with conn.cursor() as cur:
+    with mysql_connection() as conn:
+        cur = conn.cursor()
         sql = "DELETE FROM exams WHERE id = %s"
         cur.execute(sql, (data,))
         conn.commit()
@@ -77,8 +77,8 @@ async def sql_delete_command(data):
 
 # Повышение
 async def get_raise_user(id: int):
-    conn = mysql_connection()
-    with conn.cursor() as cur:
+    with mysql_connection() as conn:
+        cur = conn.cursor()
         sql = "UPDATE mentor_base.staffs " \
               "SET role_id = IF(role_id IN (7, 8), role_id -1, IF(role_id = 9, role_id + 1, role_id)) " \
               "WHERE id = %s"
@@ -90,8 +90,8 @@ async def get_raise_user(id: int):
 
 
 async def chat_id_check():
-    conn = mysql_connection()
-    with conn.cursor() as cur:
+    with mysql_connection() as conn:
+        cur = conn.cursor()
         sql = "SELECT chat_id FROM staffs WHERE active = 1"
         cur.execute(sql)
         result = cur.fetchone()
@@ -99,8 +99,8 @@ async def chat_id_check():
 
 
 async def add_user(state):
-    conn = mysql_connection()
-    with conn.cursor() as cur:
+    with mysql_connection() as conn:
+        cur = conn.cursor()
         sql = "INSERT INTO staffs (fullname, city, role_id, traineeship_id, profession, " \
           "start_year, end_year, phone, email, birthdate, username, chat_id, reg_date) VALUES " \
           "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)"
@@ -108,8 +108,8 @@ async def add_user(state):
         conn.commit()
 
 async def get_user(name):
-    conn = mysql_connection()
-    with conn.cursor() as cur:
+    with mysql_connection() as conn:
+        cur = conn.cursor()
         sql = "SELECT s.id, fullname, username, r.name, city, t.stage, profession, start_year, end_year " \
               "phone, email FROM mentor_base.staffs s " \
               "JOIN traineeships t on t.id = staffs.traineeship_id " \
@@ -121,8 +121,8 @@ async def get_user(name):
 
 
 async def active_users(data):
-    conn = mysql_connection()
-    with conn.cursor() as cur:
+    with mysql_connection() as conn:
+        cur = conn.cursor()
         if len(data) != 1:
             cur.execute(f"SELECT chat_id FROM staffs WHERE role_id IN {data}")
         else:
@@ -132,8 +132,8 @@ async def active_users(data):
 
 
 async def get_current_roles(data):
-    conn = mysql_connection()
-    with conn.cursor() as cur:
+    with mysql_connection() as conn:
+        cur = conn.cursor()
         if len(data) != 1:
             cur.execute(f"SELECT name FROM roles WHERE id IN {data}")
         else:

@@ -25,3 +25,5 @@ def mysql_connection():
             )
     return conn
 
+conn = mysql_connection()
+cur = conn.cursor()
