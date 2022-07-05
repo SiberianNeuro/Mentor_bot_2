@@ -106,7 +106,7 @@ async def get_role(call: types.CallbackQuery, state: FSMContext, callback_data: 
 @dp.callback_query_handler(other_kb.register_callback.filter(stage='education'), state=FSMRegister.med_education)
 async def get_education(c: types.CallbackQuery, state: FSMContext, callback_data: dict):
     await state.update_data(
-        traineeship=callback_data.get("stage_data"),
+        traineeship=int(callback_data.get("stage_data")),
         profession=None,
         start_year=None,
         end_year=None
