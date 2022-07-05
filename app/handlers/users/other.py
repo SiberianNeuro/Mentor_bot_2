@@ -54,6 +54,8 @@ async def cancel_handler(m: types.Message, state: FSMContext):
         return
     await state.finish()
     await m.reply('Принято 👌', reply_markup=types.ReplyKeyboardRemove())
+    if m.from_user.id in [323123946, 333996908, 555185558, 538133074, 564703276, 949960854]:
+        reply_markup = 0
 
 
 # @dp.message_handler(state=FSMRegister.name)
