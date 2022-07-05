@@ -93,8 +93,8 @@ async def start_mailing(m: types.Message, state: FSMContext):
 
 # Переходный хэндлер: если была нажата кнопка "подтвердить", то начинается проверка ссылок,
 # если кнопка "загрузить", то предлагается добавить еще один текст
-@dp.callback_query_handler(IsAdmin(), mailing_callback.filter(action='load'), state=Mailing.start_mailing)
-@dp.callback_query_handler(IsAdmin(), mailing_callback.filter(action='confirm'), state=Mailing.start_mailing)
+@dp.callback_query_handler(IsAdmin(), mailing_callback.filter(action='load'), state=Mailing.confirm_mailing)
+@dp.callback_query_handler(IsAdmin(), mailing_callback.filter(action='confirm'), state=Mailing.confirm_mailing)
 async def chose_mailing(c: types.CallbackQuery, state: FSMContext, callback_data: dict):
     if callback_data.get("action") == 'load':
         await c.answer()
@@ -125,7 +125,7 @@ async def process_mailing(m: types.Message, state: FSMContext):
 
 # После подтверждения текстов и ролей забираем из БД все ID с соответствующими ролями, затем умножаем массив с
 # ссылками до длинны списка пользователей и рассылаем по порядку
-@dp.callback_query_handler(mailing_callback.filter(action='execute'), state="*")
+@dp.callback_query_handler(mailing_callback.filter(action='execute'), state=Mailing.confirm_mailing)
 async def execute_mailing(c: types.CallbackQuery, state: FSMContext):
     await c.message.answer('Пристегните ремни, начинаем рассылку 😎')
     async with state.proxy() as data:
@@ -149,7 +149,7 @@ def register_mailing_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(more_workers, IsAdmin(), mailing_callback.filter(action='worker'), state=Mailing.process_workers)
     dp.register_callback_query_handler(start_text, IsAdmin(), mailing_callback.filter(action='execute'), state=Mailing.workers)
     dp.register_message_handler(start_mailing, IsAdmin(), state=Mailing.start_mailing)
-    dp.register_callback_query_handler(chose_mailing, IsAdmin(), mailing_callback.filter(action='load'), state=Mailing.start_mailing)
-    dp.register_callback_query_handler(chose_mailing, IsAdmin(), mailing_callback.filter(action='confirm'), state=Mailing.start_mailing)
+    dp.register_callback_query_handler(chose_mailing, IsAdmin(), mailing_callback.filter(action='load'), state=Mailing.confirm_mailing)
+    dp.register_callback_query_handler(chose_mailing, IsAdmin(), mailing_callback.filter(action='confirm'), state=Mailing.confirm_mailing)
     dp.register_message_handler(process_mailing, IsAdmin(), state=Mailing.process_mailing)
-    dp.register_callback_query_handler(execute_mailing, IsAdmin(), mailing_callback.filter(action='execute'), state="*")
+    dp.register_callback_query_handler(execute_mailing, IsAdmin(), mailing_callback.filter(action='execute'), state=Mailing.confirm_mailing)

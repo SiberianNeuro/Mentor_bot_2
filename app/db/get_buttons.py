@@ -35,7 +35,7 @@ async def get_role_buttons():
 async def get_education_buttons():
     with mysql_connection() as conn:
         cur = conn.cursor()
-        sql = "SELECT id, stage FROM stages WHERE id IN (5, 6)"
+        sql = "SELECT id, stage FROM traineeships WHERE id IN (5, 6)"
         cur.execute(sql)
         result = cur.fetchall()
     return result
