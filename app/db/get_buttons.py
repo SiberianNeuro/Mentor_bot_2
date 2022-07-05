@@ -1,4 +1,4 @@
-from loader import mysql_connection
+from app.models.database import mysql_connection
 
 
 # Форматы опроса

@@ -1,5 +1,4 @@
 venv/*
 .idea/*
 .env
-/app/utils/misc/client_secret.json
 /client_secret.json

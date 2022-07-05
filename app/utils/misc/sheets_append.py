@@ -9,7 +9,7 @@ async def add_user_array(state):
     scopes = ["https://www.googleapis.com/auth/drive",
               "https://www.googleapis.com/auth/drive.file",
               "https://www.googleapis.com/auth/spreadsheets"]
-    secret_file = os.path.join(os.getcwd(), 'client_secret.json')
+    secret_file = os.path.join(os.getcwd(), '../../../client_secret.json')
     credentials = service_account.Credentials.from_service_account_file(secret_file, scopes=scopes)
     service = discovery.build('sheets', 'v4', credentials=credentials)
     spreadsheet_id = "1SNA51rlReIonDCVryC_T3v0wzhU0QrMBfoL_Kxq3Z6w"

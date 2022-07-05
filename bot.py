@@ -15,7 +15,6 @@ async def on_startup(dp):
     other.register_handlers_other(dp) # Регистрация хэндлеров обычных пользователей
     error_handler.register_error_handler(dp) # Регистрация error-хэндлеров
 
-
 if __name__ == '__main__':
     from app.utils.misc import logging
 

@@ -1,17 +1,23 @@
 from datetime import datetime
 import logging
+import random
+
 
 from aiogram.dispatcher import FSMContext
 from aiogram import types, Dispatcher
+from aiogram.dispatcher.filters import Text, CommandStart
 
 from app.filters.other import is_register
-from loader import dispatcher as dp
-from aiogram.dispatcher.filters import Text, CommandStart
-from app.keyboards import other_kb
-from app.keyboards.admin_kb import get_admin_kb
-from app.utils.states import FSMRegister
-from app.db import mysql_db
 from app.filters.admin import IsAdmin
+
+from app.keyboards.other_kb import *
+from app.keyboards.admin_kb import get_admin_kb
+
+from app.utils.states import FSMRegister
+
+from app.db import mysql_db
+
+from app.models.simple_answers import answers
 
 
 # @dp.message_handler(CommandStart(), state="*")
@@ -24,7 +30,7 @@ async def commands_start(m: types.Message, state: FSMContext):
         await m.answer('Вижу, что ты уже зарегистрирован 🤠\n\nЧем могу помочь?', reply_markup=types.ReplyKeyboardRemove())
     else:
         await m.answer('Вижу, что ты еще не проходил регистрацию 😱\n\n⬇️Скорее жми кнопку и начнём знакомиться⬇️',
-                       reply_markup=await other_kb.get_register_button())
+                       reply_markup=await get_register_button())
 
 
 # @dp.callback_query_handler(other_kb.start_register.filter(status='yes'), state=None)
@@ -41,7 +47,7 @@ async def start_register(c: types.CallbackQuery):
                                'Если вдруг передумаешь регистрироваться, либо что-то напишешь не так,'
                                ' жми кнопку <b>"Отмена"</b>,'
                                'или снова напиши /start',
-                               reply_markup=await other_kb.get_cancel_button())
+                               reply_markup=await get_cancel_button())
         await c.message.answer('Для начала напиши своё ФИО полностью кириллицей\n\n'
                                '<b><i>Например: Погребной Данила Олегович</i></b>')
         await c.message.delete()
@@ -81,7 +87,7 @@ async def get_city(m: types.Message, state: FSMContext):
                    '<b>Сотрудник L1:</b> ты прошел стажировку и состоишь в команде специалистов поддержки\n\n'
                    '<b>Сеньор L1:</b> ты руководишь командой специалистов поддержки\n\n'
                    'Выбирай честно 🗿',
-                   reply_markup=await other_kb.get_pos_keyboard())
+                   reply_markup=await get_pos_keyboard())
 
 
 # @dp.callback_query_handler(other_kb.register_callback.filter(stage='position'), state=FSMRegister.role)
@@ -97,12 +103,12 @@ async def get_role(call: types.CallbackQuery, state: FSMContext, callback_data: 
                                   '<b>Не поступал, но собираюсь:</b> ты не был в ординатуре, но хочешь и будешь туда поступать\n\n'
                                   '<b>Учусь прямо сейчас:</b> ты обучаешься в ординатуре на данный момент\n\n'
                                   '<b>Закончил обучение:</b> ты уже выпустился из ординатуры с дипломом на руках',
-                                  reply_markup=await other_kb.get_spec_keyboard())
+                                  reply_markup=await get_spec_keyboard())
         await call.message.delete()
     if role in (9, 10, 11):
         await FSMRegister.med_education.set()
         await call.message.answer('Отлично, с этим определились. Скажи, пожалуйста, есть ли у тебя медицинское образование?',
-                                  reply_markup=await other_kb.get_education_keyboard())
+                                  reply_markup=await get_education_keyboard())
         await call.message.delete()
 
 
@@ -188,16 +194,24 @@ async def finish_register(m: types.Message, state: FSMContext):
         await m.answer("Это некорректная дата. Пожалуйста, введи дату по шаблону.")
 
 
+async def echo(message: types.Message):
+    if "привет" in message.text.lower():
+        await message.reply(random.choice(answers['hello']))
+    else:
+
+        await message.reply(random.choice(answers['others']))
+
+
 def register_handlers_other(dp: Dispatcher):
     dp.register_message_handler(commands_start, CommandStart(), state="*")
-    dp.register_message_handler(start_register, other_kb.start_register.filter(status='yes'), state=None)
+    dp.register_callback_query_handler(start_register, register_callback.filter(stage='yes'), state=None)
     dp.register_message_handler(cancel_handler, state='*', commands='отмена')
     dp.register_message_handler(cancel_handler, Text(equals='отмена', ignore_case=True), state='*')
     dp.register_message_handler(get_fullname, state=FSMRegister.name)
     dp.register_message_handler(get_city, state=FSMRegister.city)
-    dp.register_callback_query_handler(get_role, other_kb.register_callback.filter(stage='position'), state=FSMRegister.role)
-    dp.register_callback_query_handler(get_education, other_kb.register_callback.filter(stage='education'), state=FSMRegister.med_education)
-    dp.register_callback_query_handler(get_traineeship, other_kb.register_callback.filter(stage='spec'),
+    dp.register_callback_query_handler(get_role, register_callback.filter(stage='position'), state=FSMRegister.role)
+    dp.register_callback_query_handler(get_education, register_callback.filter(stage='education'), state=FSMRegister.med_education)
+    dp.register_callback_query_handler(get_traineeship, register_callback.filter(stage='spec'),
                                        state=FSMRegister.traineeship)
     dp.register_message_handler(get_profession, state=FSMRegister.profession)
     dp.register_message_handler(get_start_year, state=FSMRegister.start_year)
@@ -205,5 +219,6 @@ def register_handlers_other(dp: Dispatcher):
     dp.register_message_handler(get_phone_number, state=FSMRegister.phone)
     dp.register_message_handler(get_email, state=FSMRegister.email)
     dp.register_message_handler(finish_register, state=FSMRegister.birthdate)
+    dp.register_message_handler(echo)
 
 

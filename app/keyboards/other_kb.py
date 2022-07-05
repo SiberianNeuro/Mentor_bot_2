@@ -3,12 +3,11 @@ from aiogram.utils.callback_data import CallbackData
 
 from app.db.get_buttons import get_role_buttons, get_education_buttons
 
-start_register = CallbackData("start", "status")
 register_callback = CallbackData("register", "stage", "stage_data")
 
 
 async def get_register_button():
-    button = InlineKeyboardButton('Начать регистрацию', callback_data=start_register.new(status='yes'))
+    button = InlineKeyboardButton('Начать регистрацию', callback_data=register_callback.new(status='yes', stage_data='yes'))
     register_keyboard = InlineKeyboardMarkup(row_width=1)
     register_keyboard.add(button)
     return register_keyboard
