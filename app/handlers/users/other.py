@@ -8,8 +8,10 @@ from app.filters.other import is_register
 from loader import dispatcher as dp
 from aiogram.dispatcher.filters import Text, CommandStart
 from app.keyboards import other_kb
+from app.keyboards.admin_kb import get_admin_kb
 from app.utils.states import FSMRegister
 from app.db import mysql_db
+from app.filters.admin import IsAdmin
 
 
 # @dp.message_handler(CommandStart(), state="*")
@@ -53,9 +55,7 @@ async def cancel_handler(m: types.Message, state: FSMContext):
     if current_state is None:
         return
     await state.finish()
-    await m.reply('Принято 👌', reply_markup=types.ReplyKeyboardRemove())
-    if m.from_user.id in [323123946, 333996908, 555185558, 538133074, 564703276, 949960854]:
-        reply_markup = 0
+    await m.reply('Принято 👌', reply_markup=await get_admin_kb() if IsAdmin() else types.ReplyKeyboardRemove())
 
 
 # @dp.message_handler(state=FSMRegister.name)
