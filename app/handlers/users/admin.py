@@ -27,8 +27,7 @@ async def admin_start(message: types.Message, state: FSMContext):
                          reply_markup=await get_admin_kb())
     await message.delete()
     await message.bot.set_my_commands([
-        types.BotCommand('moderator', 'Вернуться в админ-панель'),
-        types.BotCommand('mailing', 'Рассылка тестов')
+        types.BotCommand('moderator', 'Вернуться в админ-панель')
     ])
 
 """Загрузка опроса"""

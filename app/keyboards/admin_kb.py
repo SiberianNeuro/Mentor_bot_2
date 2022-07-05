@@ -7,7 +7,8 @@ from app.db.get_buttons import get_stage_buttons, get_result_buttons, get_role_b
 async def get_admin_kb() -> ReplyKeyboardMarkup:
     buttons = [
         KeyboardButton('Загрузить ⏏'),
-        KeyboardButton('Найти 👀')
+        KeyboardButton('Найти 👀'),
+        KeyboardButton('Рассылка 🔊')
     ]
     admin_kb = ReplyKeyboardMarkup(resize_keyboard=True)
     admin_kb.row(*buttons)

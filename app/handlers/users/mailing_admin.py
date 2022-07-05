@@ -11,6 +11,7 @@ from app.keyboards.admin_kb import get_mailing_keyboard, mailing_callback, get_e
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.utils.exceptions import ChatNotFound
+from aiogram.dispatcher.filters import Text
 
 """Стартовая команда и загрузка ролей"""
 
@@ -163,7 +164,7 @@ async def execute_mailing(c: types.CallbackQuery, state: FSMContext):
 
 
 def register_mailing_handlers(dp: Dispatcher):
-    dp.register_message_handler(mailing, IsAdmin(), commands=['mailing'], state="*")
+    dp.register_message_handler(mailing, IsAdmin(), Text(equals='Рассылка 🔊'), state="*")
     dp.register_callback_query_handler(get_workers, IsAdmin(), mailing_callback.filter(action='worker'), state=Mailing.workers)
     dp.register_callback_query_handler(chose_workers, IsAdmin(), mailing_callback.filter(action='load'), state=Mailing.workers)
     dp.register_callback_query_handler(chose_workers, IsAdmin(), mailing_callback.filter(action='confirm'), state=Mailing.workers)
