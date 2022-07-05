@@ -163,7 +163,7 @@ async def execute_mailing(c: types.CallbackQuery, state: FSMContext):
 
 
 def register_mailing_handlers(dp: Dispatcher):
-    dp.register_message_handler(mailing, IsAdmin(), commands=['mailing'])
+    dp.register_message_handler(mailing, IsAdmin(), commands=['mailing'], state="*")
     dp.register_callback_query_handler(get_workers, IsAdmin(), mailing_callback.filter(action='worker'), state=Mailing.workers)
     dp.register_callback_query_handler(chose_workers, IsAdmin(), mailing_callback.filter(action='load'), state=Mailing.workers)
     dp.register_callback_query_handler(chose_workers, IsAdmin(), mailing_callback.filter(action='confirm'), state=Mailing.workers)

@@ -19,10 +19,6 @@ from app.utils.misc.file_parsing import file_parser
 # Команда входа в админку
 # @dp.message_handler(IsAdmin(), commands=['moderator'], state="*")
 async def admin_start(message: types.Message, state: FSMContext):
-    await message.bot.set_my_commands([
-        types.BotCommand('moderator', 'Вернуться в админ-панель'),
-        types.BotCommand('mailing', 'Рассылка тестов')
-    ])
     await state.finish()
     await message.answer(f'Приветствую тебя, обучатор! 🦾\n\n'
                     f'Что я умею:\n\n'
@@ -30,6 +26,10 @@ async def admin_start(message: types.Message, state: FSMContext):
                     f'👉🏻 Нажми кнопку <b>"Найти"</b>, чтобы найти информацию о предыдущих аттестациях',
                          reply_markup=await get_admin_kb())
     await message.delete()
+    await message.bot.set_my_commands([
+        types.BotCommand('moderator', 'Вернуться в админ-панель'),
+        types.BotCommand('mailing', 'Рассылка тестов')
+    ])
 
 """Загрузка опроса"""
 
