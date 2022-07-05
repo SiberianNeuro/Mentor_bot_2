@@ -97,6 +97,7 @@ async def get_role(call: types.CallbackQuery, state: FSMContext, callback_data: 
                                   reply_markup=await other_kb.get_spec_keyboard())
         await call.message.delete()
     if role in (9, 10, 11):
+        logger.debug(f'role - {role}')
         await FSMRegister.med_education.set()
         await call.message.answer('Отлично, с этим определились. Скажи, пожалуйста, есть ли у тебя медицинское образование?',
                                   reply_markup=await other_kb.get_education_keyboard())
@@ -105,6 +106,8 @@ async def get_role(call: types.CallbackQuery, state: FSMContext, callback_data: 
 
 @dp.callback_query_handler(other_kb.register_callback.filter(stage='education'), state=FSMRegister.med_education)
 async def get_education(c: types.CallbackQuery, state: FSMContext, callback_data: dict):
+    logger.debug(f'{callback_data["stage_data"]}')
+    await c.answer()
     await state.update_data(
         traineeship=int(callback_data.get("stage_data")),
         profession=None,
@@ -112,7 +115,7 @@ async def get_education(c: types.CallbackQuery, state: FSMContext, callback_data
         end_year=None
     )
     await FSMRegister.phone.set()
-    await c.answer('Записал 👌\n\nТеперь пробежимся по формальностям:\nВведи своей номер телефона 📱')
+    await c.message.answer('Записал 👌\n\nТеперь пробежимся по формальностям:\nВведи своей номер телефона 📱')
     await c.message.delete()
 
 
