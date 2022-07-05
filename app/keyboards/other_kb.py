@@ -32,7 +32,7 @@ async def get_cancel_button():
 
 async def get_education_keyboard():
     buttons = await get_education_buttons()
-    education_keyboard = InlineKeyboardMarkup(row_width=2)
+    education_keyboard = InlineKeyboardMarkup(row_width=1)
     for data, text in buttons:
         education_keyboard.insert(InlineKeyboardButton(
             text=text, callback_data=register_callback.new(stage='education', stage_data=data)
