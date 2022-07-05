@@ -123,10 +123,10 @@ async def active_users(data):
     with mysql_connection() as conn:
         cur = conn.cursor()
         if len(data) != 1:
-            cur.execute(f"SELECT chat_id FROM staffs WHERE role_id IN {data}")
+            cur.execute(f"SELECT chat_id, username FROM staffs WHERE role_id IN {data}")
         else:
-            cur.execute(f'SELECT chat_id FROM staffs WHERE role_id = {data[0]}')
-        result = [id[0] for id in cur.fetchall()]
+            cur.execute(f'SELECT chat_id, username FROM staffs WHERE role_id = {data[0]}')
+        result = cur.fetchall()
     return result
 
 

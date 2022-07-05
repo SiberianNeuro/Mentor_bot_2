@@ -17,7 +17,7 @@ from app.utils.misc.file_parsing import file_parser
 
 
 # Команда входа в админку
-@dp.message_handler(IsAdmin(), commands=['moderator'], state="*")
+# @dp.message_handler(IsAdmin(), commands=['moderator'], state="*")
 async def admin_start(message: types.Message, state: FSMContext):
     await message.bot.set_my_commands([
         types.BotCommand('moderator', 'Вернуться в админ-панель'),
@@ -35,7 +35,7 @@ async def admin_start(message: types.Message, state: FSMContext):
 
 
 # Начало загрузки опроса: документ
-@dp.message_handler(IsAdmin(), Text(equals='Загрузить ⏏'), state=None)
+# @dp.message_handler(IsAdmin(), Text(equals='Загрузить ⏏'), state=None)
 async def exam_start(m: types.Message):
     await FSMAdmin.document.set()
     await m.answer('<b>Начинаем загрузку результатов аттестации</b>\n'
@@ -44,7 +44,7 @@ async def exam_start(m: types.Message):
     await m.answer('Сейчас тебе нужно прислать мне протокол опроса 📜')
 
 # Загрузка документа, парсинг документа, переход к выбору формата опроса
-@dp.message_handler(IsAdmin(), content_types=['document'], state=FSMAdmin.document)
+# @dp.message_handler(IsAdmin(), content_types=['document'], state=FSMAdmin.document)
 async def load_document(m: types.Message, state: FSMContext):
     source: tuple = await file_parser(m.document.file_id, m.document.file_name)
     if source == 0:
@@ -98,7 +98,7 @@ async def load_document(m: types.Message, state: FSMContext):
             await FSMAdmin.confirm.set()
 
 
-@dp.callback_query_handler(IsAdmin(), exam_callback.filter(action='overload'), state=FSMAdmin.confirm)
+# @dp.callback_query_handler(IsAdmin(), exam_callback.filter(action='overload'), state=FSMAdmin.confirm)
 async def confirm_document(c: types.CallbackQuery, callback_data: dict):
     await c.answer()
     if int(callback_data.get('action_data')) == 1:
@@ -111,7 +111,7 @@ async def confirm_document(c: types.CallbackQuery, callback_data: dict):
 
 
 # Загрузка ссылки, обёртка результатов загрузки
-@dp.message_handler(IsAdmin(), state=FSMAdmin.link)
+# @dp.message_handler(IsAdmin(), state=FSMAdmin.link)
 async def load_link(m: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['link'] = m.text
@@ -126,7 +126,7 @@ async def load_link(m: types.Message, state: FSMContext):
 
 
 # Команда на удаление опроса
-@dp.callback_query_handler(IsAdmin(), exam_callback.filter(action='delete'))
+# @dp.callback_query_handler(IsAdmin(), exam_callback.filter(action='delete'))
 async def del_callback_run(c: types.CallbackQuery, callback_data: dict):
     await mysql_db.delete_exam(callback_data.get("action_data"))
     logger.info(f'{c.from_user.username} удалил(-а) запись аттестации.')
@@ -138,7 +138,7 @@ async def del_callback_run(c: types.CallbackQuery, callback_data: dict):
 
 
 # Начало поиска: запрос ФИО
-@dp.message_handler(IsAdmin(), Text(equals='Найти 👀'), state=None)
+# @dp.message_handler(IsAdmin(), Text(equals='Найти 👀'), state=None)
 async def start_search(message: types.Message):
     await message.reply('👇🏼 Введи Ф.И.О. сотрудника полностью или по отдельности',
                             reply_markup=await get_cancel_button())
@@ -146,12 +146,10 @@ async def start_search(message: types.Message):
 
 
 # Поиск ФИО по БД, вывод результатов
-@dp.message_handler(IsAdmin(), state=FSMAdmin.trainee_name)
+# @dp.message_handler(IsAdmin(), state=FSMAdmin.trainee_name)
 async def search_item(m: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['trainee_name'] = m.text.title()
-    read = await mysql_db.name_search(data['trainee_name'])
-    logger.info(f'{m.from_user.username} выполнил поиск опросов по запросу {data["trainee_name"]}')
+    read = await mysql_db.name_search(m.text.title())
+    logger.info(f'{m.from_user.username} выполнил поиск опросов по запросу {m.text.title()}')
     if not read:
         await m.answer('Информации об этом сотруднике нет 🤔',
                                reply_markup=await get_admin_kb())
@@ -162,11 +160,11 @@ async def search_item(m: types.Message, state: FSMContext):
 
 
 def register_handlers_admin(dp: Dispatcher):
-    dp.register_message_handler(admin_start, IsAdmin(), commands=['moderator'], state="*")
-    dp.register_message_handler(exam_start, IsAdmin(), Text(equals='Загрузить ⏏'), state=None)
+    dp.register_message_handler(admin_start, IsAdmin(), commands=['moderator'])
+    dp.register_message_handler(exam_start, IsAdmin(), Text(equals='Загрузить ⏏'))
     dp.register_message_handler(load_document, IsAdmin(), content_types=['document'], state=FSMAdmin.document)
     dp.register_callback_query_handler(confirm_document, IsAdmin(), exam_callback.filter(action='overload'), state=FSMAdmin.confirm)
     dp.register_message_handler(load_link, IsAdmin(), state=FSMAdmin.link)
     dp.register_callback_query_handler(del_callback_run, IsAdmin(), exam_callback.filter(action='delete'))
-    dp.register_message_handler(start_search, IsAdmin(), Text(equals='Найти 👀'), state=None)
+    dp.register_message_handler(start_search, IsAdmin(), Text(equals='Найти 👀'))
     dp.register_message_handler(search_item, IsAdmin(), state=FSMAdmin.trainee_name)

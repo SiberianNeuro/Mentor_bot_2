@@ -29,8 +29,8 @@ class InterceptHandler(logging.Handler):
             depth += 1
 
         logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
-        logger.add('logfile.log', rotation='10:00', compression='zip')
 
 def setup():
+    logger.add('logfile.log', rotation='10:00', compression='zip')
     logging.basicConfig(handlers=[InterceptHandler()], level=logging.INFO)
 
