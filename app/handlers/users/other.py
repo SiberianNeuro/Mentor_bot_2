@@ -193,7 +193,7 @@ def register_handlers_other(dp: Dispatcher):
     dp.register_message_handler(get_fullname, state=FSMRegister.name)
     dp.register_message_handler(get_city, state=FSMRegister.city)
     dp.register_callback_query_handler(get_role, other_kb.register_callback.filter(stage='position'), state=FSMRegister.role)
-    dp.register_message_handler(get_education, other_kb.register_callback.filter(stage='education'), state=FSMRegister.med_education)
+    dp.register_callback_query_handler(get_education, other_kb.register_callback.filter(stage='education'), state=FSMRegister.med_education)
     dp.register_callback_query_handler(get_traineeship, other_kb.register_callback.filter(stage='spec'),
                                        state=FSMRegister.traineeship)
     dp.register_message_handler(get_profession, state=FSMRegister.profession)
