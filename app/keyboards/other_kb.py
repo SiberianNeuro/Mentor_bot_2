@@ -7,7 +7,7 @@ register_callback = CallbackData("register", "stage", "stage_data")
 
 
 async def get_register_button():
-    button = InlineKeyboardButton('Начать регистрацию', callback_data=register_callback.new(status='yes', stage_data='yes'))
+    button = InlineKeyboardButton('Начать регистрацию', callback_data=register_callback.new(stage='yes', stage_data='yes'))
     register_keyboard = InlineKeyboardMarkup(row_width=1)
     register_keyboard.add(button)
     return register_keyboard

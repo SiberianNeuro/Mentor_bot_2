@@ -204,7 +204,7 @@ async def echo(message: types.Message):
 
 def register_handlers_other(dp: Dispatcher):
     dp.register_message_handler(commands_start, CommandStart(), state="*")
-    dp.register_callback_query_handler(start_register, register_callback.filter(stage='yes'), state=None)
+    dp.register_callback_query_handler(start_register, register_callback.filter(stage='yes'))
     dp.register_message_handler(cancel_handler, state='*', commands='отмена')
     dp.register_message_handler(cancel_handler, Text(equals='отмена', ignore_case=True), state='*')
     dp.register_message_handler(get_fullname, state=FSMRegister.name)
