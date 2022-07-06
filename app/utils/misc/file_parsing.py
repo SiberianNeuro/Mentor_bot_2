@@ -21,10 +21,13 @@ async def file_parser(fileid, filename):
     fi = file_info.file_path
     name = filename
     urllib.request.urlretrieve(f'https://api.telegram.org/file/bot{config.tg_bot.token}/{fi}',f'./{name}')
+
     try:
         d = docx.Document(filename)
     except PackageNotFoundError:
+        os.remove(filename)
         return 6
+
     general_table = d.tables[0]
     retake_date = None
     if "Призывные мероприятия" in d.paragraphs[3].text:
