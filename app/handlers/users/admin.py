@@ -40,6 +40,16 @@ async def exam_start(m: types.Message):
     await m.answer('Сейчас тебе нужно прислать мне протокол опроса 📜')
 
 
+# @dp.message_handler(state='*', commands='отмена')
+# @dp.message_handler(Text(equals='отмена', ignore_case=True), state='*')
+async def cancel_handler_admin(m: types.Message, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state is None:
+        return
+    await state.finish()
+    await m.reply('Принято 👌', reply_markup=await get_admin_kb())
+
+
 # Загрузка документа, парсинг документа, переход к выбору формата опроса
 # @dp.message_handler(IsAdmin(), content_types=['document'], state=FSMAdmin.document)
 async def load_document(m: types.Message, state: FSMContext):
@@ -158,6 +168,8 @@ async def search_item(m: types.Message, state: FSMContext):
 def setup(dp: Dispatcher):
     dp.register_message_handler(admin_start, is_admin=True, commands=['moderator'])
     dp.register_message_handler(exam_start, Text(equals='Загрузить ⏏'), is_admin=True)
+    dp.register_message_handler(cancel_handler_admin, state='*', commands='отмена')
+    dp.register_message_handler(cancel_handler_admin, Text(equals='отмена', ignore_case=True), state='*')
     dp.register_message_handler(load_document, content_types=['document'], state=Exam.document, is_admin=True)
     dp.register_callback_query_handler(confirm_document, exam_callback.filter(action='overload'), state=Exam.confirm, is_admin=True)
     dp.register_message_handler(load_link, is_admin=True, state=Exam.link)

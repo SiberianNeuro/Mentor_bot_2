@@ -59,7 +59,7 @@ async def cancel_handler(m: types.Message, state: FSMContext):
     if current_state is None:
         return
     await state.finish()
-    await m.reply('Принято 👌', reply_markup=await get_admin_kb() if IsAdmin() else types.ReplyKeyboardRemove())
+    await m.reply('Принято 👌', reply_markup=types.ReplyKeyboardRemove())
 
 
 # @dp.message_handler(state=FSMRegister.name)
