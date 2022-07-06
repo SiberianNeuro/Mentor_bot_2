@@ -219,6 +219,6 @@ def register_handlers_other(dp: Dispatcher):
     dp.register_message_handler(get_phone_number, state=FSMRegister.phone)
     dp.register_message_handler(get_email, state=FSMRegister.email)
     dp.register_message_handler(finish_register, state=FSMRegister.birthdate)
-    dp.register_message_handler(echo)
+    dp.register_message_handler(echo, chat_type=types.ChatType.PRIVATE)
 
 

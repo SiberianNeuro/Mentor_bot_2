@@ -60,6 +60,8 @@ async def load_document(m: types.Message, state: FSMContext):
     elif source == 5:
         await m.answer("Неверно заполнено поле даты переаттестации. Пожалуйста, введи дату в формате "
                        "<i>ДД.ММ.ГГГГ</i> и пришли мне повторно. ")
+    elif source == 6:
+        await m.answer("Не распознал расширение протокола. Я кушаю протоколы только в формате .docx")
     else:
         fullname, stage_id, result_id, score, exam_date = source[:5]
         try:

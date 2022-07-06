@@ -1,5 +1,6 @@
 import urllib.request
 import docx
+from docx.opc.exceptions import PackageNotFoundError
 import os
 from datetime import datetime, date
 
@@ -20,9 +21,10 @@ async def file_parser(fileid, filename):
     fi = file_info.file_path
     name = filename
     urllib.request.urlretrieve(f'https://api.telegram.org/file/bot{config.tg_bot.token}/{fi}',f'./{name}')
-
-    d = docx.Document(filename)
-
+    try:
+        d = docx.Document(filename)
+    except PackageNotFoundError:
+        return 6
     general_table = d.tables[0]
     retake_date = None
     if "Призывные мероприятия" in d.paragraphs[3].text:
