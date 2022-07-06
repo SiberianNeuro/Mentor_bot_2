@@ -31,6 +31,10 @@ class InterceptHandler(logging.Handler):
         logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
 
 def setup():
-    logger.add('logfile.log', rotation='10:00', compression='zip')
+    logger.level("DOCUMENTS", no=33, color="<blue>")
+    logger.level("REGISTRATION", no=33, color="<green>")
+    logger.level("GOOGLE", no=33, color="<cyan>")
+    logger.level("DATABASE", no=33, color="<yellow>")
+    logger.add('logfile_{time:DD_MM_YYYY}.log', rotation='8:30', compression='zip', format="{time:DD-MM-YYYY at HH:mm:ss}: {level}: [{module}({line})]: {message}")
     logging.basicConfig(handlers=[InterceptHandler()], level=logging.INFO)
 

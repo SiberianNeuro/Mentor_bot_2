@@ -2,8 +2,7 @@ import asyncio
 import logging
 
 from app.db.mysql_db import active_users, get_current_roles
-from loader import bot, dispatcher as dp
-from app.filters.admin import IsAdmin
+from loader import bot
 from app.utils.states import Mailing
 from app.keyboards.admin_kb import get_mailing_keyboard, mailing_callback, get_execute_button, \
     get_roles_keyboard, text_switch_button
@@ -163,15 +162,15 @@ async def execute_mailing(c: types.CallbackQuery, state: FSMContext):
     await state.finish()
 
 
-def register_mailing_handlers(dp: Dispatcher):
-    dp.register_message_handler(mailing, IsAdmin(), Text(equals='Рассылка 🔊'), state="*")
-    dp.register_callback_query_handler(get_workers, IsAdmin(), mailing_callback.filter(action='worker'), state=Mailing.workers)
-    dp.register_callback_query_handler(chose_workers, IsAdmin(), mailing_callback.filter(action='load'), state=Mailing.workers)
-    dp.register_callback_query_handler(chose_workers, IsAdmin(), mailing_callback.filter(action='confirm'), state=Mailing.workers)
-    dp.register_callback_query_handler(more_workers, IsAdmin(), mailing_callback.filter(action='worker'), state=Mailing.process_workers)
-    dp.register_callback_query_handler(start_text, IsAdmin(), mailing_callback.filter(action='execute'), state=Mailing.workers)
-    dp.register_message_handler(start_mailing, IsAdmin(), state=Mailing.start_mailing)
-    dp.register_callback_query_handler(chose_mailing, IsAdmin(), mailing_callback.filter(action='load'), state=Mailing.confirm_mailing)
-    dp.register_callback_query_handler(chose_mailing, IsAdmin(), mailing_callback.filter(action='confirm'), state=Mailing.confirm_mailing)
-    dp.register_message_handler(process_mailing, IsAdmin(), state=Mailing.process_mailing)
-    dp.register_callback_query_handler(execute_mailing, IsAdmin(), mailing_callback.filter(action='execute'), state=Mailing.confirm_mailing)
+def setup(dp: Dispatcher):
+    dp.register_message_handler(mailing, Text(equals='Рассылка 🔊'), state="*", is_admin=True)
+    dp.register_callback_query_handler(get_workers, mailing_callback.filter(action='worker'), state=Mailing.workers, is_admin=True)
+    dp.register_callback_query_handler(chose_workers, mailing_callback.filter(action='load'), state=Mailing.workers, is_admin=True)
+    dp.register_callback_query_handler(chose_workers, mailing_callback.filter(action='confirm'), state=Mailing.workers, is_admin=True)
+    dp.register_callback_query_handler(more_workers, mailing_callback.filter(action='worker'), state=Mailing.process_workers, is_admin=True)
+    dp.register_callback_query_handler(start_text, mailing_callback.filter(action='execute'), state=Mailing.workers, is_admin=True)
+    dp.register_message_handler(start_mailing, state=Mailing.start_mailing)
+    dp.register_callback_query_handler(chose_mailing, mailing_callback.filter(action='load'), state=Mailing.confirm_mailing, is_admin=True)
+    dp.register_callback_query_handler(chose_mailing, mailing_callback.filter(action='confirm'), state=Mailing.confirm_mailing, is_admin=True)
+    dp.register_message_handler(process_mailing, state=Mailing.process_mailing, is_admin=True)
+    dp.register_callback_query_handler(execute_mailing, mailing_callback.filter(action='execute'), state=Mailing.confirm_mailing, is_admin=True)

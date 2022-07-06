@@ -2,9 +2,9 @@ import urllib.request
 import docx
 from docx.opc.exceptions import PackageNotFoundError
 import os
-from datetime import datetime, date
+from datetime import datetime
 
-
+from app.db.mysql_db import get_user_id
 from loader import config, bot
 
 # Парсер для протоколов опроса
@@ -41,6 +41,7 @@ async def file_parser(fileid, filename):
     elif "при экзаменации" in d.paragraphs[3].text:
         stage_id = 5
     else:
+        os.remove(filename)
         return 0  # Не распознал протокол опроса
 
     scores_table = d.tables[2] if stage_id == 3 else d.tables[1]
@@ -56,13 +57,19 @@ async def file_parser(fileid, filename):
     for r in results_table.rows:
         results.append([cell.text for cell in r.cells])
 
-    fullname = general[0][1]
+    fullname = general[0][1].strip()
+    user_id = await get_user_id(fullname)
+    if user_id is None:
+        os.remove(filename)
+        return 7
     if stage_id == 4:
         score = 0.0
     else:
         score = scores[-1][2]
         if score == '':
+            os.remove(filename)
             return 1  # Не нашел итоговое количество баллов
+
     if stage_id == 1:
         result_id = 3
     else:
@@ -73,20 +80,26 @@ async def file_parser(fileid, filename):
             try:
                 retake_date = datetime.strptime(results[-2][3], "%d.%m.%Y")
             except ValueError:
+                os.remove(filename)
                 return 5 # Неверно записана дата переопроса
         else:
             result_id = 3
+
     if general[-1][1] != '':
         try:
             exam_date = datetime.strptime(general[-1][1], "%d.%m.%Y")
         except ValueError:
+            os.remove(filename)
             return 3  # Неверно написана дата опроса
     else:
+        os.remove(filename)
         return 4  # Нет даты опроса
+
     try:
         score = float(score.replace(',', '.'))
     except AttributeError:
         score = float(score)
     finally:
         os.remove(filename)
-        return fullname, stage_id, result_id, score, exam_date, retake_date
+
+        return fullname, user_id, stage_id, result_id, score, exam_date, retake_date

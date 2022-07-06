@@ -2,7 +2,7 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 
 
 # Состояния для опросов
-class FSMAdmin(StatesGroup):
+class Exam(StatesGroup):
     document = State()
     confirm = State()
     link = State()

@@ -57,5 +57,5 @@ async def errors_handler(update, exception):
     logger.exception(f'Update: {update} \n{exception}')
 
 
-def register_error_handler(dp: Dispatcher):
+def setup(dp: Dispatcher):
     dp.register_errors_handler(errors_handler)

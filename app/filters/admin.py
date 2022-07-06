@@ -1,17 +1,17 @@
-from aiogram import types
-
-import typing
+from dataclasses import dataclass
 
 from aiogram.dispatcher.filters import BoundFilter
+from aiogram.dispatcher.handler import ctx_data
 
-from app.db.mysql_db import admins_ids
+from app.db.mysql_db import admin_check
 
 
-class IsAdmin(BoundFilter):
+@dataclass
+class IsAdminFilter(BoundFilter):
+    key = "is_admin"
+    is_admin: bool
 
-    async def check(self, obj):
-        ids = await admins_ids()
-        if obj.from_user.id in ids:
-            return True
-        else:
-            return False
+    async def check(self, obj) -> bool:
+        data = ctx_data.get()
+        is_admin = data['user']
+        return is_admin

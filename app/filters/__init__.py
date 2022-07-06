@@ -1,5 +1,7 @@
-from .admin import IsAdmin
-from loader import dispatcher
+from .admin import IsAdminFilter
+from aiogram import Dispatcher
+from loguru import logger
 
-if __name__ == "filters":
-    dispatcher.filters_factory.bind(IsAdmin)
+def setup(dp: Dispatcher):
+    logger.info("Configure filters...")
+    dp.filters_factory.bind(IsAdminFilter)

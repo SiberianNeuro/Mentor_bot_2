@@ -1,5 +1,5 @@
 from datetime import datetime
-import logging
+from loguru import logger
 import random
 
 
@@ -7,15 +7,13 @@ from aiogram.dispatcher import FSMContext
 from aiogram import types, Dispatcher
 from aiogram.dispatcher.filters import Text, CommandStart
 
-from app.filters.other import is_register
-from app.filters.admin import IsAdmin
 
 from app.keyboards.other_kb import *
 from app.keyboards.admin_kb import get_admin_kb
 
 from app.utils.states import FSMRegister
 
-from app.db import mysql_db
+from app.db.mysql_db import is_register, user_registration_process
 
 from app.models.simple_answers import answers
 
@@ -39,7 +37,7 @@ async def start_register(c: types.CallbackQuery):
         await c.answer()
         await c.message.answer('Ты уже регистрировался 👺')
         await c.message.delete()
-        logging.debug(f"{c.from_user.username} - попытка повторной регистрации")
+        logger.debug(f"{c.from_user.username} - попытка повторной регистрации")
     else:
         await c.answer()
         await FSMRegister.name.set()
@@ -51,7 +49,7 @@ async def start_register(c: types.CallbackQuery):
         await c.message.answer('Для начала напиши своё ФИО полностью кириллицей\n\n'
                                '<b><i>Например: Погребной Данила Олегович</i></b>')
         await c.message.delete()
-        logging.info(f'{c.from_user.username} начал(-а) регистрацию')
+        logger.log('REGISTRATION', f'@{c.from_user.username} начал(-а) регистрацию')
 
 
 # @dp.message_handler(state='*', commands='отмена')
@@ -186,10 +184,10 @@ async def finish_register(m: types.Message, state: FSMContext):
         birthdate = datetime.strptime(m.text, "%d.%m.%Y")
         await state.update_data(bdate=birthdate, username='@' + m.from_user.username, chat_id=m.from_user.id)
         user = await state.get_data()
-        await mysql_db.add_user(tuple(user.values()))
+        await user_registration_process(tuple(user.values()))
         await m.answer('Спасибо, что уделил мне время 👏\nРегистрация завершена :)', reply_markup=types.ReplyKeyboardRemove())
         await state.finish()
-        logging.info(f'{m.from_user.username} успешно зарегистрировался')
+        logger.log('REGISTRATION', f'@{m.from_user.username} успешно зарегистрировался')
     except ValueError:
         await m.answer("Это некорректная дата. Пожалуйста, введи дату по шаблону.")
 
@@ -202,7 +200,7 @@ async def echo(message: types.Message):
         await message.reply(random.choice(answers['others']))
 
 
-def register_handlers_other(dp: Dispatcher):
+def setup(dp: Dispatcher):
     dp.register_message_handler(commands_start, CommandStart(), state="*")
     dp.register_callback_query_handler(start_register, register_callback.filter(stage='yes'))
     dp.register_message_handler(cancel_handler, state='*', commands='отмена')
