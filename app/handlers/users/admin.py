@@ -4,7 +4,7 @@ from aiogram.dispatcher.filters import Text
 
 from loguru import logger
 
-from app.db.mysql_db import exam_processing, search_exam
+from app.db.mysql_db import exam_processing, search_exam, delete_exam
 from app.utils.misc.wrappers import report_wrapper, search_wrapper
 from app.keyboards.other_kb import get_cancel_button
 from app.keyboards.admin_kb import *
@@ -134,7 +134,7 @@ async def load_link(m: types.Message, state: FSMContext):
 # Команда на удаление опроса
 # @dp.callback_query_handler(IsAdmin(), exam_callback.filter(action='delete'))
 async def del_callback_run(c: types.CallbackQuery, callback_data: dict):
-    await mysql_db.delete_exam(callback_data.get("action_data"))
+    await delete_exam(callback_data.get("action_data"))
     logger.info(f'@{c.from_user.username} удалил(-а) запись аттестации.')
     await c.answer(text='Информация удалена', show_alert=True)
     await c.message.delete()

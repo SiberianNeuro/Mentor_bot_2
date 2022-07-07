@@ -1,11 +1,14 @@
 import asyncio
 import logging
 
+from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
+
 from app.db.mysql_db import active_users, get_current_roles
 from loader import bot
 from app.utils.states import Mailing
 from app.keyboards.admin_kb import get_mailing_keyboard, mailing_callback, get_execute_button, \
     get_roles_keyboard, text_switch_button
+from app.keyboards.other_kb import get_cancel_button
 
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
@@ -19,8 +22,10 @@ from aiogram.dispatcher.filters import Text
 # @dp.message_handler(IsAdmin(), commands=['mailing'])
 async def mailing(m: types.Message, state: FSMContext):
     await state.finish()
-    await m.answer("📣 <b>Начинаем подготовку к рассылке тестов</b>\n\nДля начала выбери должности, которым будем рассылать тесты."
-                   "Если передумаешь, напиши <b>'отмена'</b> или <b>/start</b>", reply_markup=await get_roles_keyboard())
+    await m.answer("📣 <b>Начинаем подготовку к рассылке тестов</b>", reply_markup=await get_cancel_button())
+    await m.answer("Для начала выбери должности, которым будем рассылать тесты. "
+                   "Если передумаешь, напиши <b>'отмена'</b>", reply_markup=await get_roles_keyboard())
+
     await Mailing.workers.set()
 
 
