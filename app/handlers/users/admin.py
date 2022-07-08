@@ -166,13 +166,13 @@ async def search_item(m: types.Message, state: FSMContext):
 
 
 def setup(dp: Dispatcher):
-    dp.register_message_handler(admin_start, is_admin=True, commands=['moderator'])
-    dp.register_message_handler(exam_start, Text(equals='Загрузить ⏏'), is_admin=True)
+    dp.register_message_handler(admin_start, is_admin=True, commands=['moderator'], chat_type=types.ChatType.PRIVATE)
+    dp.register_message_handler(exam_start, Text(equals='Загрузить ⏏'), is_admin=True, chat_type=types.ChatType.PRIVATE)
     dp.register_message_handler(cancel_handler_admin, state='*', commands='отмена')
     dp.register_message_handler(cancel_handler_admin, Text(equals='отмена', ignore_case=True), state='*')
     dp.register_message_handler(load_document, content_types=['document'], state=Exam.document, is_admin=True)
     dp.register_callback_query_handler(confirm_document, exam_callback.filter(action='overload'), state=Exam.confirm, is_admin=True)
     dp.register_message_handler(load_link, is_admin=True, state=Exam.link)
     dp.register_callback_query_handler(del_callback_run, exam_callback.filter(action='delete'), is_admin=True)
-    dp.register_message_handler(start_search, Text(equals='Найти 👀'), is_admin=True)
+    dp.register_message_handler(start_search, Text(equals='Найти 👀'), is_admin=True, chat_type=types.ChatType.PRIVATE)
     dp.register_message_handler(search_item, is_admin=True, state=Exam.trainee_name)

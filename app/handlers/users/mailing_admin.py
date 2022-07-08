@@ -168,13 +168,13 @@ async def execute_mailing(c: types.CallbackQuery, state: FSMContext):
 
 
 def setup(dp: Dispatcher):
-    dp.register_message_handler(mailing, Text(equals='Рассылка 🔊'), state="*", is_admin=True)
+    dp.register_message_handler(mailing, Text(equals='Рассылка 🔊'), state="*", is_admin=True, chat_type=types.ChatType.PRIVATE)
     dp.register_callback_query_handler(get_workers, mailing_callback.filter(action='worker'), state=Mailing.workers, is_admin=True)
     dp.register_callback_query_handler(chose_workers, mailing_callback.filter(action='load'), state=Mailing.workers, is_admin=True)
     dp.register_callback_query_handler(chose_workers, mailing_callback.filter(action='confirm'), state=Mailing.workers, is_admin=True)
     dp.register_callback_query_handler(more_workers, mailing_callback.filter(action='worker'), state=Mailing.process_workers, is_admin=True)
     dp.register_callback_query_handler(start_text, mailing_callback.filter(action='execute'), state=Mailing.workers, is_admin=True)
-    dp.register_message_handler(start_mailing, state=Mailing.start_mailing)
+    dp.register_message_handler(start_mailing, state=Mailing.start_mailing, is_admin=True)
     dp.register_callback_query_handler(chose_mailing, mailing_callback.filter(action='load'), state=Mailing.confirm_mailing, is_admin=True)
     dp.register_callback_query_handler(chose_mailing, mailing_callback.filter(action='confirm'), state=Mailing.confirm_mailing, is_admin=True)
     dp.register_message_handler(process_mailing, state=Mailing.process_mailing, is_admin=True)
