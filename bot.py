@@ -18,10 +18,13 @@ async def on_startup(dp):
 
     from app.handlers.users import admin, mailing_admin, other
     from app.handlers.errors import error_handler
+    from app.handlers.channels import trainee_channels
     logger.info("Configure handlers...")
+    trainee_channels.setup(dp)
     admin.setup(dp) # Регистрация админ-хэндлеров
     mailing_admin.setup(dp) # Регистрация хэндлеров админ-рассылки
     other.setup(dp) # Регистрация хэндлеров обычных пользователей
+
     error_handler.setup(dp) # Регистрация error-хэндлеров
 
 if __name__ == '__main__':
