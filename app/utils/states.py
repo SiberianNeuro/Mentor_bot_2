@@ -6,8 +6,8 @@ class Exam(StatesGroup):
     document = State()
     confirm = State()
     link = State()
-    trainee_name = State()
-
+    exam_searching = State()
+    user_searching = State()
 
 # Состояния для регистрации пользователя
 class FSMRegister(StatesGroup):

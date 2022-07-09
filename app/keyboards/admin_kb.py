@@ -3,23 +3,24 @@ from aiogram.utils.callback_data import CallbackData
 
 from app.db.get_buttons import get_stage_buttons, get_result_buttons, get_role_buttons
 
-
+# Стартовая админская клавиатура
 async def get_admin_kb() -> ReplyKeyboardMarkup:
     buttons = [
-        KeyboardButton('Загрузить ⏏'),
-        KeyboardButton('Найти 👀'),
-        KeyboardButton('Рассылка 🔊')
+        KeyboardButton('Загрузить опрос ⏏'),
+        KeyboardButton('Найти опрос 👀'),
+        KeyboardButton('Рассылка тестов 🔊'),
+        KeyboardButton('Найти сотрудника 👨‍⚕')
     ]
-    admin_kb = ReplyKeyboardMarkup(resize_keyboard=True)
-    admin_kb.row(*buttons)
-    return admin_kb
+    admin_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+    admin_keyboard.add(*buttons)
+    return admin_keyboard
 
 
 """Клавиатуры загрузки протоколов"""
 
 exam_callback = CallbackData('exam', 'action', 'action_data')
 
-
+# Клавиатура подтверждения валидности опроса
 async def get_overload_keyboard() -> InlineKeyboardMarkup:
     buttons = (
         InlineKeyboardButton(text='Подтвердить ✅', callback_data=exam_callback.new(action='overload', action_data='1')),
@@ -100,3 +101,6 @@ async def get_roles_keyboard() -> InlineKeyboardMarkup:
     for data, text in buttons:
         roles_keyboard.insert(InlineKeyboardButton(text=text, callback_data=mailing_callback.new(action='worker', c_data=data)))
     return roles_keyboard
+
+
+"""Клавиатура распределения"""

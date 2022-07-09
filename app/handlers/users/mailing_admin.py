@@ -25,8 +25,8 @@ async def mailing(m: types.Message, state: FSMContext):
     await m.answer("📣 <b>Начинаем подготовку к рассылке тестов</b>", reply_markup=await get_cancel_button())
     await m.answer("Для начала выбери должности, которым будем рассылать тесты. "
                    "Если передумаешь, напиши <b>'отмена'</b>", reply_markup=await get_roles_keyboard())
-
     await Mailing.workers.set()
+    await m.delete()
 
 
 # Загрузка первой роли, потом предложение выбрать дополнительную роль или подтвердить текущие
@@ -168,7 +168,7 @@ async def execute_mailing(c: types.CallbackQuery, state: FSMContext):
 
 
 def setup(dp: Dispatcher):
-    dp.register_message_handler(mailing, Text(equals='Рассылка 🔊'), state="*", is_admin=True, chat_type=types.ChatType.PRIVATE)
+    dp.register_message_handler(mailing, Text(equals='Рассылка тестов 🔊'), state="*", is_admin=True, chat_type=types.ChatType.PRIVATE)
     dp.register_callback_query_handler(get_workers, mailing_callback.filter(action='worker'), state=Mailing.workers, is_admin=True)
     dp.register_callback_query_handler(chose_workers, mailing_callback.filter(action='load'), state=Mailing.workers, is_admin=True)
     dp.register_callback_query_handler(chose_workers, mailing_callback.filter(action='confirm'), state=Mailing.workers, is_admin=True)

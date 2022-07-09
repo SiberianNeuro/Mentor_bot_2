@@ -10,10 +10,11 @@ from aiogram.dispatcher.filters import Text, CommandStart
 
 from app.keyboards.other_kb import *
 from app.keyboards.admin_kb import get_admin_kb
+from app.utils.misc.wrappers import user_wrapper
 
 from app.utils.states import FSMRegister
 
-from app.db.mysql_db import is_register, user_registration_process
+from app.db.mysql_db import is_register, user_db_roundtrip
 
 from app.models.simple_answers import answers
 
@@ -172,11 +173,13 @@ async def get_phone_number(m: types.Message, state: FSMContext):
     await FSMRegister.email.set()
     await m.answer('Принял, теперь напиши свою гугл-почту 📧\n(заканчивается на @gmail.com)')
 
+
 # @dp.message_handler(state=FSMRegister.email)
 async def get_email(m: types.Message, state: FSMContext):
     await state.update_data(email=m.text)
     await FSMRegister.birthdate.set()
     await m.answer('Огонь, осталось только написать дату рождения в формате <i>ДД.ММ.ГГГГ</i>')
+
 
 # @dp.message_handler(state=FSMRegister.birthdate)
 async def finish_register(m: types.Message, state: FSMContext):
@@ -184,8 +187,13 @@ async def finish_register(m: types.Message, state: FSMContext):
         birthdate = datetime.strptime(m.text, "%d.%m.%Y")
         await state.update_data(bdate=birthdate, username='@' + m.from_user.username, chat_id=m.from_user.id)
         user = await state.get_data()
-        await user_registration_process(tuple(user.values()))
+        user_info = await user_db_roundtrip(tuple(user.values()))
         await m.answer('Спасибо, что уделил мне время 👏\nРегистрация завершена :)', reply_markup=types.ReplyKeyboardRemove())
+
+        trainee_id, new_trainee = await user_wrapper(user_info)
+        await m.bot.send_message(
+            chat_id=555185558, text=f'Новый стажер прошел регистрацию:\n\n{new_trainee}\n\nКому распределяем?',
+        )
         await state.finish()
         logger.log('REGISTRATION', f'@{m.from_user.username} успешно зарегистрировался')
     except ValueError:
@@ -196,7 +204,6 @@ async def echo(message: types.Message):
     if "привет" in message.text.lower():
         await message.reply(random.choice(answers['hello']))
     else:
-
         await message.reply(random.choice(answers['others']))
 
 

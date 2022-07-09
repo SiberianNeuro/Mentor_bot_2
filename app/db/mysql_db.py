@@ -26,7 +26,7 @@ async def admin_check(obj):
 
 
 # Добавить опрос в БД
-async def exam_processing(data):
+async def exam_processing(data: dict):
     with mysql_connection() as conn:
         cur = conn.cursor()
         insert_exam = "INSERT INTO exams (document_id, " \
@@ -63,7 +63,7 @@ async def exam_processing(data):
 
 
 # Найти все опросы по ФИО стажера
-async def search_exam(data):
+async def db_search_exam(data: str):
     with mysql_connection() as conn:
         cur = conn.cursor()
         sql = "SELECT ex.id, ex.document_id, s.fullname, st.stage, r.result, " \
@@ -79,7 +79,7 @@ async def search_exam(data):
 
 
 # Удалить запись об опросе
-async def delete_exam(data):
+async def delete_exam(data: int):
     with mysql_connection() as conn:
         cur = conn.cursor()
         sql = "DELETE FROM exams WHERE id = %s"
@@ -107,8 +107,7 @@ async def is_register(obj):
                 return False
 
 
-
-async def user_registration_process(state):
+async def user_db_roundtrip(state: tuple):
     with mysql_connection() as conn:
         cur = conn.cursor()
         append_user = "INSERT INTO staffs (fullname, city, role_id, traineeship_id, profession, " \
@@ -117,15 +116,28 @@ async def user_registration_process(state):
         cur.execute(append_user, state)
         conn.commit()
 
+        cur = conn.cursor()
         get_user = "SELECT s.id, fullname, username, r.name, city, t.stage, profession, start_year, end_year, " \
-              "phone, email FROM staffs s " \
+              "phone, email, s.role_id FROM staffs s " \
               "JOIN traineeships t on t.id = s.traineeship_id " \
               "JOIN roles r on r.id = s.role_id " \
-              "WHERE fullname = %s AND active = 1"
-        cur.execute(get_user, state[0])
+              "WHERE chat_id = %s AND active = 1"
+        cur.execute(get_user, state[-2])
         result = cur.fetchone()
         return result
 
+
+async def get_user_info(user_name: str):
+    with mysql_connection() as conn:
+        cur = conn.cursor()
+        get_user = "SELECT s.id, fullname, username, r.name, city, t.stage, profession, start_year, end_year, " \
+                   "phone, email, s.role_id FROM staffs s " \
+                   "JOIN traineeships t on t.id = s.traineeship_id " \
+                   "JOIN roles r on r.id = s.role_id " \
+                   "WHERE fullname LIKE %s AND active = 1"
+        cur.execute(get_user, ('%' + user_name.title() + '%',))
+        result = cur.fetchall()
+    return result
 
 async def active_users(data):
     with mysql_connection() as conn:
