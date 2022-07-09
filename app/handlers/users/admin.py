@@ -196,7 +196,9 @@ async def employee_search_result(msg: types.Message, state: FSMContext):
 async def route_trainees(call: types.CallbackQuery, callback_data: dict):
     await call.answer()
 
-    mentor_id, role_id, user_chat_id = tuple(map(int, callback_data.values()))
+    mentor_id = int(callback_data.get('mentor_id'))
+    role_id = int(callback_data.get('role_id'))
+    user_chat_id = int(callback_data.get('user_id'))
     channels = await get_admin_channels()
     doctors_chat, head_chat, locale_chat = None, None, None
     headmaster_name, mentor_name, mentor_chat_id, mentor_username = None, None, None, None
