@@ -1,3 +1,5 @@
+import pymysql.cursors
+
 from app.models.database import mysql_connection
 
 from loguru import logger
@@ -111,33 +113,48 @@ async def user_db_roundtrip(state: tuple):
     with mysql_connection() as conn:
         cur = conn.cursor()
         append_user = "INSERT INTO staffs (fullname, city, role_id, traineeship_id, profession, " \
-              "start_year, end_year, phone, email, birthdate, username, chat_id, reg_date) VALUES " \
-              "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)"
+                      "start_year, end_year, phone, email, birthdate, username, chat_id, reg_date) VALUES " \
+                      "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)"
         cur.execute(append_user, state)
         conn.commit()
+        cur.close()
 
-        cur = conn.cursor()
-        get_user = "SELECT s.id, fullname, username, r.name, city, t.stage, profession, start_year, end_year, " \
-              "phone, email, s.role_id FROM staffs s " \
-              "JOIN traineeships t on t.id = s.traineeship_id " \
-              "JOIN roles r on r.id = s.role_id " \
-              "WHERE chat_id = %s AND active = 1"
-        cur.execute(get_user, state[-2])
-        result = cur.fetchone()
-        return result
-
-
-async def get_user_info(user_name: str):
-    with mysql_connection() as conn:
         cur = conn.cursor()
         get_user = "SELECT s.id, fullname, username, r.name, city, t.stage, profession, start_year, end_year, " \
                    "phone, email, s.role_id FROM staffs s " \
                    "JOIN traineeships t on t.id = s.traineeship_id " \
                    "JOIN roles r on r.id = s.role_id " \
-                   "WHERE fullname LIKE %s AND active = 1"
-        cur.execute(get_user, ('%' + user_name.title() + '%',))
-        result = cur.fetchall()
+                   "WHERE chat_id = %s AND active = 1"
+        cur.execute(get_user, state[-1])
+        result = cur.fetchone()
+        return result
+
+
+async def get_user_info(user: str | int):
+    with mysql_connection() as conn:
+        cur = conn.cursor()
+        if type(user) is str:
+            cur.execute(
+                query="SELECT s.id, fullname, username, r.name, city, t.stage, profession, start_year, end_year, " \
+                      "phone, email, s.role_id FROM staffs s " \
+                      "JOIN traineeships t on t.id = s.traineeship_id " \
+                      "JOIN roles r on r.id = s.role_id " \
+                      "WHERE fullname LIKE %s AND active = 1",
+                args=('%' + user.title() + '%',)
+            )
+            result = cur.fetchall()
+        elif type(user) is int:
+            cur.execute(
+                query="SELECT s.id, fullname, username, r.name, city, t.stage, profession, start_year, end_year, " \
+                      "phone, email, s.role_id FROM staffs s " \
+                      "JOIN traineeships t on t.id = s.traineeship_id " \
+                      "JOIN roles r on r.id = s.role_id " \
+                      "WHERE chat_id = %s AND active = 1",
+                args=user
+            )
+            result = cur.fetchone()
     return result
+
 
 async def active_users(data):
     with mysql_connection() as conn:
@@ -159,3 +176,24 @@ async def get_current_roles(data):
             cur.execute(f'SELECT name FROM roles WHERE id = {data[0]}')
         result = cur.fetchall()
     return result
+
+
+async def get_admin_channels():
+    with mysql_connection() as conn:
+        cur = conn.cursor(cursor=pymysql.cursors.DictCursor)
+        get_channel = "SELECT admin_id, channel_id, fullname, username, chat_id FROM admins_channels " \
+                      "INNER JOIN admins ON admins.id = admins_channels.admin_id"
+        cur.execute(get_channel)
+        result = cur.fetchall()
+        print(result)
+    return result
+
+
+async def get_chat_members(ids: list):
+    with mysql_connection() as conn:
+        cur = conn.cursor(cursor=pymysql.cursors.DictCursor)
+        cur.execute(
+            query=f"SELECT fullname, city FROM staffs "
+                  f"WHERE chat_id IN {(*ids, '')}")
+        result = cur.fetchall()
+        return result

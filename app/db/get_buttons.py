@@ -31,7 +31,6 @@ async def get_role_buttons():
     return result
 
 
-
 async def get_education_buttons():
     with mysql_connection() as conn:
         cur = conn.cursor()
@@ -40,3 +39,12 @@ async def get_education_buttons():
         result = cur.fetchall()
     return result
 
+
+async def get_mentors_buttons():
+    with mysql_connection() as conn:
+        cur = conn.cursor()
+        sql = "SELECT id, fullname, role_id FROM admins " \
+              "WHERE role_id in (4, 12)"
+        cur.execute(sql)
+        result = cur.fetchall()
+    return result

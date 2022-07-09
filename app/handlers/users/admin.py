@@ -4,7 +4,8 @@ from aiogram.dispatcher.filters import Text
 
 from loguru import logger
 
-from app.db.mysql_db import exam_processing, db_search_exam, delete_exam, get_user_info
+from app.db.mysql_db import exam_processing, db_search_exam, delete_exam, get_user_info, get_admin_channels
+from app.utils.misc.sheets_append import add_user_array
 from app.utils.misc.wrappers import report_wrapper, search_wrapper, user_wrapper
 from app.keyboards.other_kb import get_cancel_button
 from app.keyboards.admin_kb import *
@@ -17,15 +18,16 @@ from app.utils.misc.file_parsing import file_parser
 async def admin_start(msg: types.Message, state: FSMContext):
     await state.finish()
     await msg.answer(f'Приветствую тебя, обучатор! 🦾\n\n'
-                    f'Что я умею:\n\n'
-                    f'👉🏻 Нажми на кнопку <b>"Загрузить"</b>, чтобы передать мне информацию о прошедшей аттестации\n'
-                    f'👉🏻 Нажми кнопку <b>"Найти"</b>, чтобы найти информацию о предыдущих аттестациях\n'
-                         f'👉🏻 Нажми кнопку <b>"Рассылка"</b>, если нужна помощь в рассылке тестов',
+                     f'Что я умею:\n\n'
+                     f'👉🏻 Нажми на кнопку <b>"Загрузить"</b>, чтобы передать мне информацию о прошедшей аттестации\n'
+                     f'👉🏻 Нажми кнопку <b>"Найти"</b>, чтобы найти информацию о предыдущих аттестациях\n'
+                     f'👉🏻 Нажми кнопку <b>"Рассылка"</b>, если нужна помощь в рассылке тестов',
                      reply_markup=await get_admin_kb())
     await msg.delete()
     await msg.bot.set_my_commands([
         types.BotCommand('moderator', 'Вернуться в админ-панель')
     ])
+
 
 """Загрузка опроса"""
 
@@ -35,7 +37,7 @@ async def admin_start(msg: types.Message, state: FSMContext):
 async def exam_start(msg: types.Message):
     await Exam.document.set()
     await msg.answer('<b>Начинаем загрузку результатов аттестации</b>\n'
-                   'Чтобы выйти из режима загрузки, нажми кнопку <b>"Отмена"</b> или напиши /moderator',
+                     'Чтобы выйти из режима загрузки, нажми кнопку <b>"Отмена"</b> или напиши /moderator',
                      reply_markup=await get_cancel_button())
     await msg.answer('Сейчас тебе нужно прислать мне протокол опроса 📜')
 
@@ -57,23 +59,27 @@ async def load_document(msg: types.Message, state: FSMContext):
 
     if source == 0:
         await msg.answer("Я не распознал протокол.\n\nПроверь, актуальным ли протоколом ты пользуешься.\n"
-                       "Если нет, то узнай у руководителя актуальную версю, перепиши результаты туда, и снова отправь мне.")
+                         "Если нет, то узнай у руководителя актуальную версю, перепиши результаты туда, и снова "
+                         "отправь мне.")
     elif source == 1:
-        await msg.answer("Я не нашел итоговое количество баллов.\n\nВнимательно посмотри, заполнил ли ты их. Если не заполнил - "
-                       "заполняй и присылай мне протокол повторно.")
+        await msg.answer(
+            "Я не нашел итоговое количество баллов.\n\nВнимательно посмотри, заполнил ли ты их. Если не заполнил - "
+            "заполняй и присылай мне протокол повторно.")
     elif source == 3:
-        await msg.answer("Поле 'Дата проведения проф.опроса' заполнено некорректно.\n\nПожалуйста, введи дату в формате "
-                       "<i>ДД.ММ.ГГГГ</i> и пришли мне повторно.")
+        await msg.answer(
+            "Поле 'Дата проведения проф.опроса' заполнено некорректно.\n\nПожалуйста, введи дату в формате "
+            "<i>ДД.ММ.ГГГГ</i> и пришли мне повторно.")
     elif source == 4:
-        await msg.answer("Не заполнено поле 'Дата проведения проф.опроса'.\n\nЗаполни его, пожалуйста, и пришли мне снова.")
+        await msg.answer("Не заполнено поле 'Дата проведения проф.опроса'.\n\nЗаполни его, пожалуйста, и пришли мне "
+                         "снова.")
     elif source == 5:
         await msg.answer("Неверно заполнено поле даты переаттестации.\n\nПожалуйста, введи дату в формате "
-                       "<i>ДД.ММ.ГГГГ</i> и пришли мне повторно. ")
+                         "<i>ДД.ММ.ГГГГ</i> и пришли мне повторно. ")
     elif source == 6:
         await msg.answer("Не распознал расширение протокола. Я кушаю протоколы только в формате .docx")
     elif source == 7:
         await msg.answer('Я не нашел такого стажера в базе данных. Проверь, пожалуйста, правильно ли заполнено ФИО.\n\n'
-                       'Если все правильно, уточни у стажера, проходил ли он у меня регистрацию.')
+                         'Если все правильно, уточни у стажера, проходил ли он у меня регистрацию.')
 
     else:
         fullname, user_id, stage_id, result_id, score, exam_date = source[:6]
@@ -92,19 +98,20 @@ async def load_document(msg: types.Message, state: FSMContext):
             exam_date=exam_date,
             retake_date=retake_date_to_sql
         )
-        stages = ["Опрос на 3-й день", "Опрос в середине цикла обучения", "Опрос на И.О.", "Опрос на врача", "Аттестация стажера L1"]
+        stages = ["Опрос на 3-й день", "Опрос в середине цикла обучения", "Опрос на И.О.", "Опрос на врача",
+                  "Аттестация стажера L1"]
         stage = stages[stage_id - 1]
         results = ["Аттестация не пройдена ❌", "На пересдачу ⚠️", "Аттестация пройдена ✅"]
         result = results[result_id - 1]
         await msg.answer(f'Что получилось на выходе:\n\n'
-                       f'Сотрудник: <b>{fullname}</b>\n'
-                       f'Формат опроса: {stage}\n'
-                       f'Результат опроса: {result}\n'
-                       f'Набрано баллов: {score}\n'
-                       f'Дата опроса: {exam_date.strftime("%d.%m.%Y")}\n'
-                       f'Дата переопроса: {retake_date}\n\n'
-                       f'Если что-то не так, проверь протокол и нажми перезагрузить. Если все хорошо,'
-                       f'то жми кнопку "Подтвердить"', reply_markup=await get_overload_keyboard())
+                         f'Сотрудник: <b>{fullname}</b>\n'
+                         f'Формат опроса: {stage}\n'
+                         f'Результат опроса: {result}\n'
+                         f'Набрано баллов: {score}\n'
+                         f'Дата опроса: {exam_date.strftime("%d.%m.%Y")}\n'
+                         f'Дата переопроса: {retake_date}\n\n'
+                         f'Если что-то не так, проверь протокол и нажми перезагрузить. Если все хорошо,'
+                         f'то жми кнопку "Подтвердить"', reply_markup=await get_overload_keyboard())
         await Exam.confirm.set()
 
 
@@ -113,7 +120,7 @@ async def confirm_document(call: types.CallbackQuery, callback_data: dict):
     await call.answer()
     if int(callback_data.get('action_data')) == 1:
         await call.message.answer('Хорошо, тогда мне нужна ссылка на YouTube ⏩\n'
-                               'Если ссылок много, то пришли их через Ctrl+Enter')
+                                  'Если ссылок много, то пришли их через Ctrl+Enter')
         await Exam.link.set()
     else:
         await call.message.answer('Хорошо, тогда жду документ 📜')
@@ -126,7 +133,7 @@ async def load_link(msg: types.Message, state: FSMContext):
     await state.update_data(link=msg.text)
     to_sql = await state.get_data()
     wrapper = await exam_processing(to_sql)
-    logger.log('DATABASE', f'@{msg.from_user.username} внес результаты опроса в базу данных.')
+    logger.log('DATABASE', f'@{msg.from_user.username} append exam results to database')
     await report_wrapper(wrapper, msg=msg)
     await state.finish()
 
@@ -135,7 +142,7 @@ async def load_link(msg: types.Message, state: FSMContext):
 # @dp.callback_query_handler(IsAdmin(), exam_callback.filter(action='delete'))
 async def del_callback_run(call: types.CallbackQuery, callback_data: dict):
     await delete_exam(callback_data.get("action_data"))
-    logger.info(f'@{call.from_user.username} удалил(-а) запись аттестации.')
+    logger.info(f'@{call.from_user.username} delete exam.')
     await call.answer(text='Информация удалена', show_alert=True)
     await call.message.delete()
 
@@ -162,12 +169,11 @@ async def exam_search_result(msg: types.Message, state: FSMContext):
         await search_wrapper(read, msg=msg)
         await msg.answer('Готово!👌', reply_markup=await get_admin_kb())
     await state.finish()
-    logger.info(f'{msg.from_user.username} выполнил поиск опросов по запросу {msg.text.title()}')
 
 
 async def employee_search_start(msg: types.Message):
     await msg.reply('👇🏼 Введи Ф.И.О. сотрудника полностью или по отдельности',
-                        reply_markup=await get_cancel_button())
+                    reply_markup=await get_cancel_button())
     await Exam.user_searching.set()
 
 
@@ -179,22 +185,71 @@ async def employee_search_result(msg: types.Message, state: FSMContext):
     else:
         for user in result:
             user_data = await user_wrapper(user)
-            await msg.answer(f'{user_data[1]}')
+            await msg.answer(f'{user_data[0]}')
         await msg.answer('Готово!👌', reply_markup=await get_admin_kb())
     await state.finish()
-    logger.info(f'{msg.from_user.username} выполнил поиск сотрудников по запросу {msg.text.title()}')
+
+
+"""Распределение"""
+
+
+async def route_trainees(call: types.CallbackQuery, callback_data: dict):
+    await call.answer()
+
+    mentor_id, role_id, user_chat_id = tuple(map(int, callback_data.values()))
+    channels = await get_admin_channels()
+    doctors_chat, head_chat, locale_chat = None, None, None
+    headmaster_name, mentor_name, mentor_chat_id, mentor_username = None, None, None, None
+    for channel in channels:
+        if channel['admin_id'] == 1:
+            doctors_chat = await call.bot.get_chat(chat_id=channel['channel_id'])
+        if channel['admin_id'] == 3:
+            head_chat = await call.bot.get_chat(chat_id=channel['channel_id'])
+        if channel['admin_id'] == mentor_id:
+            locale_chat = await call.bot.get_chat(chat_id=channel['channel_id'])
+            mentor_name = f'{channel["fullname"]}'
+            mentor_username = f'{channel["username"]}'
+            mentor_chat_id = channel['chat_id']
+
+    await call.message.answer('Отравляюсь радовать стажера 🦾')
+    await call.bot.send_message(
+        chat_id=user_chat_id, text=f'Теперь я покажу тебе необходимые telegram-группы 👻\n\n'
+                                   f'<b>{doctors_chat["invite_link"]}</b>\n'
+                                   f'Эта ссылка приведет тебя на канал, где общаются все наши доктора 🧑‍⚕\n\n'
+                                   f'<b>{head_chat["invite_link"]}</b>\n'
+                                   f'Эта ссылка приведет тебя в группу, где общаются все стажеры - и опытные, '
+                                   f'и новички 😉\n\n '
+                                   f'<b>{locale_chat["invite_link"]}</b>\n'
+                                   f'А по этой ссылке ты попадешь в чат своей учебной группы 👩‍🎓\n'
+                                   f'Твой наставник, {mentor_name} {mentor_username}, будет на связи с тобой всегда и '
+                                   f'по любым вопросам'
+    )
+    user_info = await get_user_info(user_chat_id)
+    user = await user_wrapper(user_info)
+    await call.bot.send_message(
+        chat_id=mentor_chat_id, text=f'{mentor_name.split()[1]}, тебе определен новый стажер:\n'
+                                     f'{user[0]}'
+    )
+    await call.message.delete()
+    await add_user_array(user_info=user_info, mentor_name=mentor_name)
+    logger.log('REGISTRATION', f'trainee {user_chat_id} routed to mentor {mentor_name}.')
 
 
 def setup(dp: Dispatcher):
     dp.register_message_handler(admin_start, is_admin=True, commands=['moderator'], chat_type=types.ChatType.PRIVATE)
-    dp.register_message_handler(exam_start, Text(equals='Загрузить опрос ⏏'), is_admin=True, chat_type=types.ChatType.PRIVATE)
+    dp.register_message_handler(exam_start, Text(equals='Загрузить опрос ⏏'), is_admin=True,
+                                chat_type=types.ChatType.PRIVATE)
     dp.register_message_handler(cancel_handler_admin, state='*', commands='отмена')
     dp.register_message_handler(cancel_handler_admin, Text(equals='отмена', ignore_case=True), state='*')
     dp.register_message_handler(load_document, content_types=['document'], state=Exam.document, is_admin=True)
-    dp.register_callback_query_handler(confirm_document, exam_callback.filter(action='overload'), state=Exam.confirm, is_admin=True)
+    dp.register_callback_query_handler(confirm_document, exam_callback.filter(action='overload'), state=Exam.confirm,
+                                       is_admin=True)
     dp.register_message_handler(load_link, is_admin=True, state=Exam.link)
     dp.register_callback_query_handler(del_callback_run, exam_callback.filter(action='delete'), is_admin=True)
-    dp.register_message_handler(exam_search_start, Text(equals='Найти опрос 👀'), is_admin=True, chat_type=types.ChatType.PRIVATE)
+    dp.register_message_handler(exam_search_start, Text(equals='Найти опрос 👀'), is_admin=True,
+                                chat_type=types.ChatType.PRIVATE)
     dp.register_message_handler(exam_search_result, is_admin=True, state=Exam.exam_searching)
-    dp.register_message_handler(employee_search_start, Text(equals='Найти сотрудника 👨‍⚕'), is_admin=True, chat_type=types.ChatType.PRIVATE)
+    dp.register_message_handler(employee_search_start, Text(equals='Найти сотрудника 👨‍⚕'), is_admin=True,
+                                chat_type=types.ChatType.PRIVATE)
     dp.register_message_handler(employee_search_result, is_admin=True, state=Exam.user_searching)
+    dp.register_callback_query_handler(route_trainees, mentor_callback.filter(), is_admin=True)

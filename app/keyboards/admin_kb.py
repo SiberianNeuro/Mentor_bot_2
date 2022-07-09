@@ -1,7 +1,8 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.callback_data import CallbackData
 
-from app.db.get_buttons import get_stage_buttons, get_result_buttons, get_role_buttons
+from app.db.get_buttons import get_stage_buttons, get_result_buttons, get_role_buttons, get_mentors_buttons
+
 
 # Стартовая админская клавиатура
 async def get_admin_kb() -> ReplyKeyboardMarkup:
@@ -81,9 +82,9 @@ async def get_mailing_keyboard() -> InlineKeyboardMarkup:
 # Переход от выбора ролей к добавлению тестов
 async def text_switch_button() -> InlineKeyboardMarkup:
     button = InlineKeyboardButton(text='Загрузить текст(-ы)', callback_data=mailing_callback.new(action='execute', c_data=0))
-    text_switch_button = InlineKeyboardMarkup(row_width=1)
-    text_switch_button.add(button)
-    return text_switch_button
+    text_switch = InlineKeyboardMarkup(row_width=1)
+    text_switch.add(button)
+    return text_switch
 
 
 # Переход от тестов к рассылке
@@ -104,3 +105,16 @@ async def get_roles_keyboard() -> InlineKeyboardMarkup:
 
 
 """Клавиатура распределения"""
+
+
+mentor_callback = CallbackData('mentors', 'mentor_id', 'role_id', 'user_id')
+
+
+async def get_mentors_keyboard(obj) -> InlineKeyboardMarkup:
+    buttons = await get_mentors_buttons()
+    mentors_keyboard = InlineKeyboardMarkup(row_width=1)
+    for data, text, role in buttons:
+        mentors_keyboard.insert(InlineKeyboardButton(
+            text=text, callback_data=mentor_callback.new(mentor_id=data, role_id=role, user_id=obj)
+        ))
+    return mentors_keyboard

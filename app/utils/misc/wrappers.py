@@ -148,32 +148,3 @@ async def user_wrapper(user_data: tuple):
                  f'e-mail: {user_info[10]}'
     return string, user_id
 
-
-# async def user_general_wrapper(user_data: str):
-#     """
-#
-#     :param user_data: собранные данные по пользователю(-ям)
-#     :return: обработанные данные по пользователю(-ям)
-#     """
-#     users_info = await get_user_info(user_data)
-#     for user_info in users_info:
-#         user_id = user_info[0]
-#         string = ''
-#         if user_info[-1] in (9, 10, 11):
-#             string = f'<b>{user_info[1]}</b> {user_info[2]}\n\n' \
-#                      f'Должность: {user_info[3]}\n' \
-#                      f'Город: {user_info[4]}\n' \
-#                      f'Мед. образование: {user_info[5]}\n\n' \
-#                      f'Контактный телефон: {user_info[9]}\n' \
-#                      f'e-mail: {user_info[10]}'
-#         elif user_info[-1] in (5, 6, 7, 8):
-#             string = f'<b>{user_info[1]}</b> {user_info[2]}\n\n' \
-#                      f'Должность: {user_info[3]}\n' \
-#                      f'Город: {user_info[4]}\n' \
-#                      f'Ординатура: {user_info[5]}\n' \
-#                      f'Специальность: {user_info[6]}\n' \
-#                      f'Год поступления: {user_info[7]}\n' \
-#                      f'Год выпуска: {user_info[8]}\n\n' \
-#                      f'Контактный телефон: {user_info[9]}\n' \
-#                      f'e-mail: {user_info[10]}'
-#         return string, user_id

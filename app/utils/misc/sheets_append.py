@@ -2,25 +2,39 @@ from loguru import logger
 
 from app.models.google_api import google_api
 
+from datetime import date
 
-async def add_user_array(state):
-    prep = state
 
+async def add_user_array(user_info: tuple, mentor_name: str):
+
+    fullname, username = user_info[1:3]
+    city, stage = user_info[4:6]
+    profession = f'Специальность: {user_info[6]}\n' \
+                 f'Год поступления: {user_info[7]}\n' \
+                 f'Год выпуска: {user_info[8]}'
+    phone, email, role_id = user_info[9:]
+
+    mentor_fullname = mentor_name.split(' ')
+    mentor_shortname = f'{mentor_fullname[0]} {mentor_fullname[1][0]}.{mentor_fullname[2][0]}.'
     service = google_api()
 
     spreadsheet_id = "1yEGI54xqiTVhdob6dReHhrQ0TG6XlQeXMhVE1V7cers"
-    range = "Стажировка 2.0!A1:J1" if prep['role'] == 8 else "Обучение 1-ая линия 2.0!A1:J1"
-    workday_duration = "10:30-17:00" if prep['traineeship'] == 3 else "8:30-17:00"
+    range = "Стажировка 2.0!A1:J1" if role_id == 8 else "Обучение 1-ая линия 2.0!A1:J1"
+    workday_duration = "10:30-17:00" if stage == "Учится сейчас" else "8:30-17:00"
 
     values = [[
-        prep['name'],
-        prep['username'],
-        prep['phone'],
-        prep['city'],
+        fullname,
+        username,
+        phone,
+        mentor_shortname,
+        city,
         "медицинский консультант",
-        prep['traineeship'],
-        f"Специальность: {prep['profession']}\nГод поступления: {prep['start_year']}\nГод окончания: {prep['end_year']}",
-        workday_duration
+        stage,
+        profession,
+        workday_duration,
+        date.today()
+    ]] if role_id == 8 else [[
+        fullname, username, phone, city, stage, date.today()
     ]]
 
     body = {

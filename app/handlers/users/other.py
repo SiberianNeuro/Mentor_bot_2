@@ -9,75 +9,75 @@ from aiogram.dispatcher.filters import Text, CommandStart
 
 
 from app.keyboards.other_kb import *
-from app.keyboards.admin_kb import get_admin_kb
+from app.keyboards.admin_kb import get_mentors_keyboard
 from app.utils.misc.wrappers import user_wrapper
 
 from app.utils.states import FSMRegister
 
-from app.db.mysql_db import is_register, user_db_roundtrip
+from app.db.mysql_db import is_register, user_db_roundtrip, get_admin_channels
 
 from app.models.simple_answers import answers
 
 
 # @dp.message_handler(CommandStart(), state="*")
-async def commands_start(m: types.Message, state: FSMContext):
+async def commands_start(msg: types.Message, state: FSMContext):
     await state.finish()
-    await m.delete()
-    await m.answer_sticker('CAACAgIAAxkBAAIE4GKSGruXCE8S-gM_iIJyaTbM9TGYAAJPAAOtZbwUa5EcjYesr5MkBA')
-    await m.answer('Привет ✌\n\nЯ помощник в медицинском отделе ДОК 🤖')
-    if await is_register(m.from_user.id):
-        await m.answer('Вижу, что ты уже зарегистрирован 🤠\n\nЧем могу помочь?', reply_markup=types.ReplyKeyboardRemove())
+    await msg.delete()
+    await msg.answer_sticker('CAACAgIAAxkBAAIE4GKSGruXCE8S-gM_iIJyaTbM9TGYAAJPAAOtZbwUa5EcjYesr5MkBA')
+    await msg.answer('Привет ✌\n\nЯ помощник в медицинском отделе ДОК 🤖')
+    if await is_register(msg.from_user.id):
+        await msg.answer('Вижу, что ты уже зарегистрирован 🤠\n\nЧем могу помочь?', reply_markup=types.ReplyKeyboardRemove())
     else:
-        await m.answer('Вижу, что ты еще не проходил регистрацию 😱\n\n⬇️Скорее жми кнопку и начнём знакомиться⬇️',
-                       reply_markup=await get_register_button())
+        await msg.answer('Вижу, что ты еще не проходил регистрацию 😱\n\n⬇️Скорее жми кнопку и начнём знакомиться⬇️',
+                         reply_markup=await get_register_button())
 
 
 # @dp.callback_query_handler(other_kb.start_register.filter(status='yes'), state=None)
-async def start_register(c: types.CallbackQuery):
-    if await is_register(c.from_user.id):
-        await c.answer()
-        await c.message.answer('Ты уже регистрировался 👺')
-        await c.message.delete()
-        logger.debug(f"{c.from_user.username} - попытка повторной регистрации")
+async def start_register(call: types.CallbackQuery):
+    if await is_register(call.from_user.id):
+        await call.answer()
+        await call.message.answer('Ты уже регистрировался 👺')
+        await call.message.delete()
+        logger.debug(f"{call.from_user.username} - попытка повторной регистрации")
     else:
-        await c.answer()
+        await call.answer()
         await FSMRegister.name.set()
-        await c.message.answer('Давай знакомиться✌️\n\n'
+        await call.message.answer('Давай знакомиться✌️\n\n'
                                'Если вдруг передумаешь регистрироваться, либо что-то напишешь не так,'
                                ' жми кнопку <b>"Отмена"</b>,'
                                'или снова напиши /start',
-                               reply_markup=await get_cancel_button())
-        await c.message.answer('Для начала напиши своё ФИО полностью кириллицей\n\n'
+                                  reply_markup=await get_cancel_button())
+        await call.message.answer('Для начала напиши своё ФИО полностью кириллицей\n\n'
                                '<b><i>Например: Погребной Данила Олегович</i></b>')
-        await c.message.delete()
-        logger.log('REGISTRATION', f'@{c.from_user.username} начал(-а) регистрацию')
+        await call.message.delete()
+        logger.log('REGISTRATION', f'@{call.from_user.username} started registration process...')
 
 
 # @dp.message_handler(state='*', commands='отмена')
 # @dp.message_handler(Text(equals='отмена', ignore_case=True), state='*')
-async def cancel_handler(m: types.Message, state: FSMContext):
+async def cancel_handler(msg: types.Message, state: FSMContext):
     current_state = await state.get_state()
     if current_state is None:
         return
     await state.finish()
-    await m.reply('Принято 👌', reply_markup=types.ReplyKeyboardRemove())
+    await msg.reply('Принято 👌', reply_markup=types.ReplyKeyboardRemove())
 
 
 # @dp.message_handler(state=FSMRegister.name)
-async def get_fullname(m: types.Message, state: FSMContext):
-    first_name = m.text.split()[1]
-    await state.update_data(name=m.text.title())
+async def get_fullname(msg: types.Message, state: FSMContext):
+    first_name = msg.text.split()[1]
+    await state.update_data(name=msg.text.title())
     await FSMRegister.city.set()
-    await m.answer(f'Приятно познакомиться, {first_name}!\n\nТеперь напиши город, в котором ты работаешь 🏙\n'
+    await msg.answer(f'Приятно познакомиться, {first_name}!\n\nТеперь напиши город, в котором ты работаешь 🏙\n'
                    f'<i>Например: Новосибирск, Санкт-Петербург, Екатеринбург</i>')
 
 
 # @dp.message_handler(state=FSMRegister.city)
-async def get_city(m: types.Message, state: FSMContext):
-    city = m.text.title()
+async def get_city(msg: types.Message, state: FSMContext):
+    city = msg.text.title()
     await state.update_data(city=city)
     await FSMRegister.role.set()
-    await m.answer('Замечательно 🤟\nТеперь выбери свою должность:\n\n'
+    await msg.answer('Замечательно 🤟\nТеперь выбери свою должность:\n\n'
                    '<b>Врач-стажер:</b> ты только что трудоустроился в "ПризываНет" на ставку врача и еще проходишь обучение\n\n'
                    '<b>И.О. врача:</b> ты закончил обучение и работаешь в кластере, но не проходил аттестацию на врача\n\n'
                    '<b>Врач:</b> ты прошел аттестацию на врача и полностью закончил стажировку\n\n'
@@ -86,7 +86,7 @@ async def get_city(m: types.Message, state: FSMContext):
                    '<b>Сотрудник L1:</b> ты прошел стажировку и состоишь в команде специалистов поддержки\n\n'
                    '<b>Сеньор L1:</b> ты руководишь командой специалистов поддержки\n\n'
                    'Выбирай честно 🗿',
-                   reply_markup=await get_pos_keyboard())
+                     reply_markup=await get_pos_keyboard())
 
 
 # @dp.callback_query_handler(other_kb.register_callback.filter(stage='position'), state=FSMRegister.role)
@@ -112,8 +112,8 @@ async def get_role(call: types.CallbackQuery, state: FSMContext, callback_data: 
 
 
 # @dp.callback_query_handler(other_kb.register_callback.filter(stage='education'), state=FSMRegister.med_education)
-async def get_education(c: types.CallbackQuery, state: FSMContext, callback_data: dict):
-    await c.answer()
+async def get_education(call: types.CallbackQuery, state: FSMContext, callback_data: dict):
+    await call.answer()
     await state.update_data(
         traineeship=int(callback_data.get("stage_data")),
         profession=None,
@@ -121,90 +121,91 @@ async def get_education(c: types.CallbackQuery, state: FSMContext, callback_data
         end_year=None
     )
     await FSMRegister.phone.set()
-    await c.message.answer('Записал 👌\n\nТеперь пробежимся по формальностям:\nВведи своей номер телефона 📱')
-    await c.message.delete()
+    await call.message.answer('Записал 👌\n\nТеперь пробежимся по формальностям:\nВведи своей номер телефона 📱')
+    await call.message.delete()
 
 
 # @dp.callback_query_handler(other_kb.register_callback.filter(stage='spec'), state=FSMRegister.traineeship)
-async def get_traineeship(c: types.CallbackQuery, state: FSMContext, callback_data: dict):
+async def get_traineeship(call: types.CallbackQuery, state: FSMContext, callback_data: dict):
     if int(callback_data.get('stage_data')) in (2, 3, 4):
-        await c.answer()
+        await call.answer()
         await state.update_data(traineeship=int(callback_data.get('stage_data')))
         await FSMRegister.profession.set()
-        await c.message.answer('Хорошо, а специальность известна?\n<i>Например, ЛОР или неврология</i>')
-        await c.message.delete()
+        await call.message.answer('Хорошо, а специальность известна?\n<i>Например, ЛОР или неврология</i>')
+        await call.message.delete()
     elif int(callback_data.get('stage_data')) == 1:
-        await c.answer()
+        await call.answer()
         await state.update_data(
             traineeship=int(callback_data.get('stage_data')),
             profession=None,
             start_year=None,
             end_year=None,
         )
-        await c.message.answer('Записал 👌\n\nТеперь пробежимся по формальностям:\nВведи своей номер телефона 📱')
+        await call.message.answer('Записал 👌\n\nТеперь пробежимся по формальностям:\nВведи своей номер телефона 📱')
         await FSMRegister.phone.set()
-        await c.message.delete()
+        await call.message.delete()
 
 
 # @dp.message_handler(state=FSMRegister.profession)
-async def get_profession(m: types.Message, state: FSMContext):
-    await state.update_data(profession=m.text)
+async def get_profession(msg: types.Message, state: FSMContext):
+    await state.update_data(profession=msg.text)
     await FSMRegister.start_year.set()
-    await m.answer('Отличный выбор 😎\n\nНапиши, пожалуйста, год поступления')
+    await msg.answer('Отличный выбор 😎\n\nНапиши, пожалуйста, год поступления')
 
 
 # @dp.message_handler(state=FSMRegister.start_year)
-async def get_start_year(m: types.Message, state: FSMContext):
-    await state.update_data(start_year=m.text)
+async def get_start_year(msg: types.Message, state: FSMContext):
+    await state.update_data(start_year=msg.text)
     await FSMRegister.end_year.set()
-    await m.answer('Супер, теперь год окончания')
+    await msg.answer('Супер, теперь год окончания')
 
 
 # @dp.message_handler(state=FSMRegister.end_year)
-async def get_end_year(m: types.Message, state: FSMContext):
-    await state.update_data(end_year=m.text)
-    await m.answer('Записал 👌\n\nТеперь пробежимся по формальностям:\nВведи своей номер телефона 📱')
+async def get_end_year(msg: types.Message, state: FSMContext):
+    await state.update_data(end_year=msg.text)
+    await msg.answer('Записал 👌\n\nТеперь пробежимся по формальностям:\nВведи своей номер телефона 📱')
     await FSMRegister.phone.set()
 
 
 # @dp.message_handler(state=FSMRegister.phone)
-async def get_phone_number(m: types.Message, state: FSMContext):
-    await state.update_data(phone=m.text)
+async def get_phone_number(msg: types.Message, state: FSMContext):
+    await state.update_data(phone=msg.text)
     await FSMRegister.email.set()
-    await m.answer('Принял, теперь напиши свою гугл-почту 📧\n(заканчивается на @gmail.com)')
+    await msg.answer('Принял, теперь напиши свою гугл-почту 📧\n(заканчивается на @gmail.com)')
 
 
 # @dp.message_handler(state=FSMRegister.email)
-async def get_email(m: types.Message, state: FSMContext):
-    await state.update_data(email=m.text)
+async def get_email(msg: types.Message, state: FSMContext):
+    await state.update_data(email=msg.text)
     await FSMRegister.birthdate.set()
-    await m.answer('Огонь, осталось только написать дату рождения в формате <i>ДД.ММ.ГГГГ</i>')
+    await msg.answer('Огонь, осталось только написать дату рождения в формате <i>ДД.ММ.ГГГГ</i>')
 
 
 # @dp.message_handler(state=FSMRegister.birthdate)
-async def finish_register(m: types.Message, state: FSMContext):
+async def finish_register(msg: types.Message, state: FSMContext):
     try:
-        birthdate = datetime.strptime(m.text, "%d.%m.%Y")
-        await state.update_data(bdate=birthdate, username='@' + m.from_user.username, chat_id=m.from_user.id)
+        birthdate = datetime.strptime(msg.text, "%d.%m.%Y")
+        await state.update_data(bdate=birthdate, username='@' + msg.from_user.username, chat_id=msg.from_user.id)
         user = await state.get_data()
         user_info = await user_db_roundtrip(tuple(user.values()))
-        await m.answer('Спасибо, что уделил мне время 👏\nРегистрация завершена :)', reply_markup=types.ReplyKeyboardRemove())
+        await msg.answer('Спасибо, что уделил мне время 👏\nРегистрация завершена :)', reply_markup=types.ReplyKeyboardRemove())
 
-        trainee_id, new_trainee = await user_wrapper(user_info)
-        await m.bot.send_message(
-            chat_id=555185558, text=f'Новый стажер прошел регистрацию:\n\n{new_trainee}\n\nКому распределяем?',
+        new_trainee, trainee_id = await user_wrapper(user_info)
+        await msg.bot.send_message(
+            chat_id=323123946, text=f'Новый стажер прошел регистрацию:\n\n{new_trainee}\n\nКому распределяем?',
+            reply_markup=await get_mentors_keyboard(msg.from_user.id)
         )
         await state.finish()
-        logger.log('REGISTRATION', f'@{m.from_user.username} успешно зарегистрировался')
+        logger.log('REGISTRATION', f'@{msg.from_user.username} completed registration.')
     except ValueError:
-        await m.answer("Это некорректная дата. Пожалуйста, введи дату по шаблону.")
+        await msg.answer("Это некорректная дата. Пожалуйста, введи дату по шаблону.")
 
 
-async def echo(message: types.Message):
-    if "привет" in message.text.lower():
-        await message.reply(random.choice(answers['hello']))
+async def echo(msg: types.Message):
+    if "привет" in msg.text.lower():
+        await msg.reply(random.choice(answers['hello']))
     else:
-        await message.reply(random.choice(answers['others']))
+        await msg.reply(random.choice(answers['others']))
 
 
 def setup(dp: Dispatcher):
