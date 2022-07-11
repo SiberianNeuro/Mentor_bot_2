@@ -9,7 +9,7 @@ from app.models.database import mysql_connection
 
 
 # Вытащить айдишник юзера
-async def get_user_id(data):
+async def get_user_id(data: str) -> tuple:
     with mysql_connection() as conn:
         cur = conn.cursor()
         sql = "SELECT id FROM staffs WHERE fullname = %s"
@@ -19,7 +19,7 @@ async def get_user_id(data):
 
 
 # Лист админских ИД
-async def admin_check(obj):
+async def admin_check(obj) -> tuple:
     with mysql_connection() as conn:
         cur = conn.cursor()
         sql = "SELECT chat_id FROM admins WHERE chat_id = %s"
@@ -29,7 +29,7 @@ async def admin_check(obj):
 
 
 # Добавить опрос в БД
-async def exam_processing(data: dict):
+async def exam_processing(data: dict) -> tuple:
     with mysql_connection() as conn:
         cur = conn.cursor()
         insert_exam = "INSERT INTO exams (document_id, " \
@@ -66,7 +66,7 @@ async def exam_processing(data: dict):
 
 
 # Найти все опросы по ФИО стажера
-async def db_search_exam(data: str):
+async def db_search_exam(data: str) -> tuple:
     with mysql_connection() as conn:
         cur = conn.cursor()
         sql = "SELECT ex.id, ex.document_id, s.fullname, st.stage, r.result, " \
@@ -93,7 +93,7 @@ async def delete_exam(data: int):
 """Запросы к таблицам сотрудника"""
 
 
-async def is_register(obj):
+async def is_register(obj) -> bool:
     with mysql_connection() as conn:
         cur = conn.cursor()
 
@@ -110,7 +110,7 @@ async def is_register(obj):
                 return False
 
 
-async def user_db_roundtrip(state: tuple):
+async def user_db_roundtrip(state: tuple) -> tuple:
     with mysql_connection() as conn:
         cur = conn.cursor()
         append_user = "INSERT INTO staffs (fullname, city, role_id, traineeship_id, profession, " \
@@ -131,7 +131,7 @@ async def user_db_roundtrip(state: tuple):
         return result
 
 
-async def get_user_info(user: Union[str, int]):
+async def get_user_info(user: Union[str, int]) -> tuple:
     with mysql_connection() as conn:
         cur = conn.cursor()
         if type(user) is str:
@@ -157,7 +157,7 @@ async def get_user_info(user: Union[str, int]):
     return result
 
 
-async def active_users(data):
+async def active_users(data) -> tuple:
     with mysql_connection() as conn:
         cur = conn.cursor()
         if len(data) != 1:
@@ -168,7 +168,7 @@ async def active_users(data):
     return result
 
 
-async def get_current_roles(data):
+async def get_current_roles(data) -> tuple:
     with mysql_connection() as conn:
         cur = conn.cursor()
         if len(data) != 1:
@@ -179,7 +179,7 @@ async def get_current_roles(data):
     return result
 
 
-async def get_admin(admin_id):
+async def get_admin(admin_id) -> dict:
     with mysql_connection() as conn:
         cur = conn.cursor(cursor=pymysql.cursors.DictCursor)
         get_info = "SELECT fullname, username, chat_id FROM admins " \
@@ -189,7 +189,7 @@ async def get_admin(admin_id):
     return result
 
 
-async def get_chat_members(ids: list):
+async def get_chat_members(ids: list) -> list:
     with mysql_connection() as conn:
         cur = conn.cursor(cursor=pymysql.cursors.DictCursor)
         cur.execute(

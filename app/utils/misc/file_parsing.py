@@ -7,8 +7,9 @@ from datetime import datetime
 from app.db.mysql_db import get_user_id
 from loader import config, bot
 
+
 # Парсер для протоколов опроса
-async def file_parser(fileid, filename):
+async def file_parser(fileid: str, filename: str) -> tuple:
     """
 
     :param fileid: ИД файла в телеге
