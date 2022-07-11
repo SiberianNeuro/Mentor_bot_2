@@ -19,14 +19,19 @@ class TgBot:
 
 @dataclass
 class Miscellaneous:
-    other_params: str = None
-
+    mentor_table: str
+    doctors_chat: str
+    headmaster_chat: str
+    l1_chat: str
+    kis_chat: str
+    kor_chat: str
 
 @dataclass
 class Config:
     tg_bot: TgBot
     db: DbConfig
     misc: Miscellaneous
+
 
 # Парсим .env и вытаскиваем оттуда конфиги
 def load_config(path: str = None) -> Config:
@@ -45,5 +50,12 @@ def load_config(path: str = None) -> Config:
             db_pass=env.str("DB_PASS"),
             db_name=env.str("DB_NAME")
         ),
-        misc=Miscellaneous()
+        misc=Miscellaneous(
+            mentor_table=env.str("MENTORS_TABLE"),
+            doctors_chat=env.str("DOCTORS_GROUP_CHAT_ID"),
+            headmaster_chat=env.str("NASTYA_GROUP_CHAT_ID"),
+            l1_chat=env.str("VALYA_GROUP_CHAT_ID"),
+            kis_chat=env.str("DASHA_GROUP_CHAT_ID"),
+            kor_chat=env.str("SASHA_GROUP_CHAT_ID")
+        )
     )

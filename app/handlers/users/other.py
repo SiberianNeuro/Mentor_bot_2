@@ -14,7 +14,7 @@ from app.utils.misc.wrappers import user_wrapper
 
 from app.utils.states import FSMRegister
 
-from app.db.mysql_db import is_register, user_db_roundtrip, get_admin_channels
+from app.db.mysql_db import is_register, user_db_roundtrip, get_admin
 
 from app.models.simple_answers import answers
 
@@ -189,7 +189,9 @@ async def finish_register(msg: types.Message, state: FSMContext):
         user = await state.get_data()
         user_info = await user_db_roundtrip(tuple(user.values()))
         await msg.answer('Спасибо, что уделил мне время 👏\nРегистрация завершена :)', reply_markup=types.ReplyKeyboardRemove())
-
+        if user['role'] not in (8, 9):
+            await state.finish()
+            return
         new_trainee, trainee_id = await user_wrapper(user_info)
         await msg.bot.send_message(
             chat_id=323123946, text=f'Новый стажер прошел регистрацию:\n\n{new_trainee}\n\nКому распределяем?',

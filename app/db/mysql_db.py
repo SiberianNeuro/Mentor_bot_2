@@ -178,14 +178,13 @@ async def get_current_roles(data):
     return result
 
 
-async def get_admin_channels():
+async def get_admin(admin_id):
     with mysql_connection() as conn:
         cur = conn.cursor(cursor=pymysql.cursors.DictCursor)
-        get_channel = "SELECT admin_id, channel_id, fullname, username, chat_id FROM admins_channels " \
-                      "INNER JOIN admins ON admins.id = admins_channels.admin_id"
-        cur.execute(get_channel)
-        result = cur.fetchall()
-        print(result)
+        get_info = "SELECT fullname, username, chat_id FROM admins " \
+                   "WHERE id = %s"
+        cur.execute(get_info, admin_id)
+        result = cur.fetchone()
     return result
 
 

@@ -21,11 +21,11 @@ async def on_startup(dp):
     from app.handlers.channels import trainee_channels
     logger.info("Configure handlers...")
     trainee_channels.setup(dp)
-    admin.setup(dp) # Регистрация админ-хэндлеров
-    mailing_admin.setup(dp) # Регистрация хэндлеров админ-рассылки
-    other.setup(dp) # Регистрация хэндлеров обычных пользователей
+    admin.setup(dp)
+    mailing_admin.setup(dp)
+    other.setup(dp)
 
-    error_handler.setup(dp) # Регистрация error-хэндлеров
+    error_handler.setup(dp)
 
 if __name__ == '__main__':
     from app.utils.misc import logging

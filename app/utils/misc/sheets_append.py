@@ -4,6 +4,12 @@ from app.models.google_api import google_api
 
 from datetime import date, timedelta, datetime
 
+from app.services.config import load_config
+
+config = load_config('.env')
+
+
+
 
 async def add_user_array(user_info: tuple, mentor_name: str):
 
@@ -18,8 +24,8 @@ async def add_user_array(user_info: tuple, mentor_name: str):
     mentor_shortname = f'{mentor_fullname[0]} {mentor_fullname[1][0]}.{mentor_fullname[2][0]}.'
     service = google_api()
 
-    spreadsheet_id = "1SNA51rlReIonDCVryC_T3v0wzhU0QrMBfoL_Kxq3Z6w"
-    range = "'Стажировка 2.0'!A3:K3" if role_id == 8 else "'Обучение 1-ая линия 2.0'!A3:H3"
+    spreadsheet_id = config.misc.mentor_table
+    range = "'Стажировка 2.0'!A3:L3" if role_id == 8 else "'Обучение 1-ая линия 2.0'!A3:H3"
     workday_duration = "10:30-17:00" if stage == "Учится сейчас" else "08:30-17:00"
     delta = (date.today() + timedelta(days=30)) if role_id == 8 else (date.today() + timedelta(days=15))
 
@@ -27,6 +33,7 @@ async def add_user_array(user_info: tuple, mentor_name: str):
         fullname,
         username,
         phone,
+        email,
         mentor_shortname,
         city,
         "медицинский консультант",
@@ -36,7 +43,7 @@ async def add_user_array(user_info: tuple, mentor_name: str):
         date.today().strftime('%d.%m.%Y'),
         delta.strftime('%d.%m.%Y')
     ]] if role_id == 8 else [[
-        fullname, username, phone, city, stage, date.today().strftime('%d.%m.%Y'), delta.strftime('%d.%m.%Y')
+        fullname, username, phone, email, city, stage, date.today().strftime('%d.%m.%Y'), delta.strftime('%d.%m.%Y')
     ]]
 
     body = {

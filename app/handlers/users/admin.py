@@ -4,13 +4,16 @@ from aiogram.dispatcher.filters import Text
 
 from loguru import logger
 
-from app.db.mysql_db import exam_processing, db_search_exam, delete_exam, get_user_info, get_admin_channels
+from app.db.mysql_db import exam_processing, db_search_exam, delete_exam, get_user_info, get_admin
 from app.utils.misc.sheets_append import add_user_array
 from app.utils.misc.wrappers import report_wrapper, search_wrapper, user_wrapper
-from app.keyboards.other_kb import get_cancel_button
-from app.keyboards.admin_kb import *
 from app.utils.states import Exam
 from app.utils.misc.file_parsing import file_parser
+from app.keyboards.other_kb import get_cancel_button
+from app.keyboards.admin_kb import *
+from app.services.config import load_config
+
+config = load_config(".env")
 
 
 # Команда входа в админку
@@ -199,33 +202,41 @@ async def route_trainees(call: types.CallbackQuery, callback_data: dict):
     mentor_id = int(callback_data.get('mentor_id'))
     role_id = int(callback_data.get('role_id'))
     user_chat_id = int(callback_data.get('user_id'))
-    channels = await get_admin_channels()
-    doctors_chat, head_chat, locale_chat = None, None, None
-    headmaster_name, mentor_name, mentor_chat_id, mentor_username = None, None, None, None
-    for channel in channels:
-        if channel['admin_id'] == 1:
-            doctors_chat = await call.bot.get_chat(chat_id=channel['channel_id'])
-        if channel['admin_id'] == 3:
-            head_chat = await call.bot.get_chat(chat_id=channel['channel_id'])
-        if channel['admin_id'] == mentor_id:
-            locale_chat = await call.bot.get_chat(chat_id=channel['channel_id'])
-            mentor_name = f'{channel["fullname"]}'
-            mentor_username = f'{channel["username"]}'
-            mentor_chat_id = channel['chat_id']
+
+    doctors_chat = await call.bot.get_chat(chat_id=config.misc.doctors_chat)
+    headmaster_chat = await call.bot.get_chat(chat_id=config.misc.headmaster_chat)
+    l3_chat = await call.bot.get_chat(
+        chat_id=config.misc.kis_chat if mentor_id == 5 else config.misc.kor_chat
+    )
+    l1_chat = await call.bot.get_chat(chat_id=config.misc.l1_chat)
+
+    mentor_info = await get_admin(mentor_id)
+    mentor_name = mentor_info['fullname']
+    mentor_username = mentor_info['username']
+    mentor_chat_id = mentor_info['chat_id']
 
     await call.message.answer('Отравляюсь радовать стажера 🦾')
-    await call.bot.send_message(
-        chat_id=user_chat_id, text=f'Теперь я покажу тебе необходимые telegram-группы 👻\n\n'
-                                   f'<b>{doctors_chat["invite_link"]}</b>\n'
-                                   f'Эта ссылка приведет тебя на канал, где общаются все наши доктора 🧑‍⚕\n\n'
-                                   f'<b>{head_chat["invite_link"]}</b>\n'
-                                   f'Эта ссылка приведет тебя в группу, где общаются все стажеры - и опытные, '
-                                   f'и новички 😉\n\n '
-                                   f'<b>{locale_chat["invite_link"]}</b>\n'
-                                   f'А по этой ссылке ты попадешь в чат своей учебной группы 👩‍🎓\n'
-                                   f'Твой наставник, {mentor_name} {mentor_username}, будет на связи с тобой всегда и '
-                                   f'по любым вопросам'
-    )
+    if role_id != 12:
+        await call.bot.send_message(
+            chat_id=user_chat_id, text=f'Теперь я покажу тебе необходимые telegram-группы 👻\n\n'
+                                       f'<b>{doctors_chat["invite_link"]}</b>\n'
+                                       f'Эта ссылка приведет тебя на канал, где общаются все наши доктора 🧑‍⚕\n\n'
+                                       f'<b>{headmaster_chat["invite_link"]}</b>\n'
+                                       f'Эта ссылка приведет тебя в группу, где общаются все стажеры - и опытные, '
+                                       f'и новички 😉\n\n '
+                                       f'<b>{l3_chat["invite_link"]}</b>\n'
+                                       f'А по этой ссылке ты попадешь в чат своей учебной группы 👩‍🎓\n'
+                                       f'Твой наставник, {mentor_name} {mentor_username}, будет на связи с тобой '
+                                       f'всегда и по любым вопросам'
+        )
+    else:
+        await call.bot.send_message(
+            chat_id=user_chat_id, text=f'Теперь я покажу тебе необходимые telegram-группы 👻\n\n'
+                                       f'<b>{l1_chat["invite_link"]}</b>\n'
+                                       f'По этой ссылке ты попадешь в чат своей учебной группы 👩‍🎓\n'
+                                       f'Твой наставник, {mentor_name} {mentor_username}, будет на связи с тобой '
+                                       f'всегда и по любым вопросам'
+        )
     user_info = await get_user_info(user_chat_id)
     user = await user_wrapper(user_info)
     await call.bot.send_message(
