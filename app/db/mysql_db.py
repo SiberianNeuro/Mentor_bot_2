@@ -1,8 +1,9 @@
 import pymysql.cursors
+from loguru import logger
+from typing import Union
 
 from app.models.database import mysql_connection
 
-from loguru import logger
 
 """Запросы от администратора"""
 
@@ -130,7 +131,7 @@ async def user_db_roundtrip(state: tuple):
         return result
 
 
-async def get_user_info(user: str | int):
+async def get_user_info(user: Union[str, int]):
     with mysql_connection() as conn:
         cur = conn.cursor()
         if type(user) is str:

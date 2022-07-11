@@ -2,9 +2,11 @@ from loguru import logger
 
 from app.models.google_api import google_api
 
-from datetime import date, timedelta, datetime
+from datetime import date, timedelta
 
 from app.services.config import load_config
+
+
 
 config = load_config('.env')
 
