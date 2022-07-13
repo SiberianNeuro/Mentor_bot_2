@@ -14,7 +14,7 @@ async def report_wrapper(data: tuple, msg: types.Message):
     """
     print(data)
     id, document_id, fullname, stage, result, score, link = data[:7]
-    retake_date = data[7].strftime("%d.%m.%Y") if data[7] is not None else "-"
+    retake_date = data[7] if data[7] is not None else "-"
     if result == "Аттестация пройдена ✅":
         await msg.answer_document(document_id,
                                   caption=f'<b>{fullname}</b>\n'
@@ -88,7 +88,7 @@ async def search_wrapper(resp, msg: types.Message):
         param: m: объект телеграм API - сообщение
         """
     for data in resp:
-        retake_date = data[7].strftime("%d.%m.%Y") if data[7] is not None else "-"
+        retake_date = data[7] if data[7] is not None else "-"
         if data[4] == "Аттестация пройдена ✅":
             await msg.answer_document(data[1],
                                       caption=f'<b>{data[2]}</b>\n'

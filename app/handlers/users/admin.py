@@ -90,7 +90,7 @@ async def load_document(msg: types.Message, state: FSMContext):
             retake_date = source[6].strftime("%d.%m.%Y")
         except AttributeError:
             retake_date = "-"
-        retake_date_to_sql = source[6]
+        retake_date_to_sql = str(source[6])
 
         await state.update_data(
             document=msg.document.file_id,
@@ -98,7 +98,7 @@ async def load_document(msg: types.Message, state: FSMContext):
             stage_id=stage_id,
             result_id=result_id,
             score=score,
-            exam_date=exam_date,
+            exam_date=str(exam_date),
             retake_date=retake_date_to_sql
         )
         stages = ["Опрос на 3-й день", "Опрос в середине цикла обучения", "Опрос на И.О.", "Опрос на врача",

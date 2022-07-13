@@ -32,6 +32,7 @@ async def admin_check(obj) -> tuple:
 async def exam_processing(data: dict) -> tuple:
     with mysql_connection() as conn:
         cur = conn.cursor()
+        print(data)
         insert_exam = "INSERT INTO exams (document_id, " \
                       "user_id, stage_id, result_id, " \
                       "score, date, retake_date, link) " \
@@ -53,14 +54,13 @@ async def exam_processing(data: dict) -> tuple:
             user = cur.fetchone()
             logger.success(f'{user[0]} {user[1]} повышен(-а) до должности {user[2]}.')
 
-        to_wrapper = "SELECT ex.id, ex.document_id, s.fullname, st.stage, r.result, " \
-                     "ex.score, ex.link, ex.retake_date " \
-                     "FROM exams ex " \
-                     "JOIN staffs s ON ex.user_id = s.id " \
-                     "JOIN stages st ON ex.stage_id = st.id " \
-                     "JOIN results r ON ex.result_id = r.id " \
-                     "WHERE document_id = %s"
-        cur.execute(to_wrapper, data['document'])
+        cur.execute('SELECT ex.id, ex.document_id, s.fullname, st.stage, r.result, '
+                    'ex.score, ex.link, DATE_FORMAT(ex.retake_date, "%%d.%%m.%%Y") '
+                    'FROM exams ex '
+                    'JOIN staffs s ON ex.user_id = s.id '
+                    'JOIN stages st ON ex.stage_id = st.id '
+                    'JOIN results r ON ex.result_id = r.id '
+                    'WHERE document_id = %s', data['document'])
         result = cur.fetchone()
         return result
 
@@ -69,14 +69,13 @@ async def exam_processing(data: dict) -> tuple:
 async def db_search_exam(data: str) -> tuple:
     with mysql_connection() as conn:
         cur = conn.cursor()
-        sql = "SELECT ex.id, ex.document_id, s.fullname, st.stage, r.result, " \
-              "ex.score, ex.link, ex.retake_date " \
-              "FROM exams ex " \
-              "JOIN staffs s ON ex.user_id = s.id " \
-              "JOIN stages st ON ex.stage_id = st.id " \
-              "JOIN results r ON ex.result_id = r.id " \
-              "WHERE s.fullname LIKE %s"
-        cur.execute(sql, ('%' + data + '%',))
+        cur.execute('SELECT ex.id, ex.document_id, s.fullname, st.stage, r.result, '
+                    'ex.score, ex.link, DATE_FORMAT(ex.retake_date, "%%d.%%m.%%Y") '
+                    'FROM exams ex '
+                    'JOIN staffs s ON ex.user_id = s.id '
+                    'JOIN stages st ON ex.stage_id = st.id '
+                    'JOIN results r ON ex.result_id = r.id '
+                    'WHERE fullname LIKE %s', ('%' + data + '%',))
         result = cur.fetchall()
     return result
 
