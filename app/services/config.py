@@ -25,6 +25,7 @@ class Miscellaneous:
     l1_chat: str
     kis_chat: str
     kor_chat: str
+    router_chat: str
 
 @dataclass
 class Config:
@@ -56,6 +57,7 @@ def load_config(path: str = None) -> Config:
             headmaster_chat=env.str("NASTYA_GROUP_CHAT_ID"),
             l1_chat=env.str("VALYA_GROUP_CHAT_ID"),
             kis_chat=env.str("DASHA_GROUP_CHAT_ID"),
-            kor_chat=env.str("SASHA_GROUP_CHAT_ID")
+            kor_chat=env.str("SASHA_GROUP_CHAT_ID"),
+            router_chat=env.str("ROUTER_CHAT_ID")
         )
     )
