@@ -245,7 +245,7 @@ async def route_trainees(call: types.CallbackQuery, callback_data: dict):
     )
     await call.message.delete()
     await add_user_array(user_info=user_info, mentor_name=mentor_name)
-    logger.log('REGISTRATION', f'trainee {user_chat_id} routed to mentor {mentor_name}.')
+
 
 
 def setup(dp: Dispatcher):

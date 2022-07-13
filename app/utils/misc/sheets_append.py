@@ -57,6 +57,7 @@ async def add_user_array(user_info: tuple, mentor_name: str):
         spreadsheetId=spreadsheet_id, range=range, body=body, valueInputOption="USER_ENTERED"
     ).execute()
 
+    logger.log('REGISTRATION', f'trainee {fullname} {username} routed to mentor {mentor_shortname}.')
     logger.log(
         'GOOGLE',
         '{0} cells appended to {1}: {2}'.format(result.get('updates').get('updatedCells'), range, str(*values))

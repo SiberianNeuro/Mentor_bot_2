@@ -194,7 +194,7 @@ async def finish_register(msg: types.Message, state: FSMContext):
             return
         new_trainee, trainee_id = await user_wrapper(user_info)
         await msg.bot.send_message(
-            chat_id=323123946, text=f'Новый стажер прошел регистрацию:\n\n{new_trainee}\n\nКому распределяем?',
+            chat_id=555185558, text=f'Новый стажер прошел регистрацию:\n\n{new_trainee}\n\nКому распределяем?',
             reply_markup=await get_mentors_keyboard(msg.from_user.id)
         )
         await state.finish()
