@@ -135,20 +135,20 @@ async def get_user_info(user: Union[str, int]) -> tuple:
         cur = conn.cursor()
         if type(user) is str:
             cur.execute(
-                query="SELECT s.id, fullname, username, r.name, city, t.stage, profession, start_year, end_year, " \
-                      "phone, email, s.role_id FROM staffs s " \
-                      "JOIN traineeships t on t.id = s.traineeship_id " \
-                      "JOIN roles r on r.id = s.role_id " \
+                query="SELECT s.id, fullname, username, r.name, city, t.stage, profession, start_year, end_year, "
+                      "phone, email, s.role_id FROM staffs s "
+                      "JOIN traineeships t on t.id = s.traineeship_id "
+                      "JOIN roles r on r.id = s.role_id "
                       "WHERE fullname LIKE %s AND active = 1",
                 args=('%' + user.title() + '%',)
             )
             result = cur.fetchall()
         elif type(user) is int:
             cur.execute(
-                query="SELECT s.id, fullname, username, r.name, city, t.stage, profession, start_year, end_year, " \
-                      "phone, email, s.role_id FROM staffs s " \
-                      "JOIN traineeships t on t.id = s.traineeship_id " \
-                      "JOIN roles r on r.id = s.role_id " \
+                query="SELECT s.id, fullname, username, r.name, city, t.stage, profession, start_year, end_year, "
+                      "phone, email, s.role_id FROM staffs s "
+                      "JOIN traineeships t on t.id = s.traineeship_id "
+                      "JOIN roles r on r.id = s.role_id "
                       "WHERE chat_id = %s AND active = 1",
                 args=user
             )

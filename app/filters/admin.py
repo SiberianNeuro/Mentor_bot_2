@@ -3,8 +3,6 @@ from dataclasses import dataclass
 from aiogram.dispatcher.filters import BoundFilter
 from aiogram.dispatcher.handler import ctx_data
 
-from app.db.mysql_db import admin_check
-
 
 @dataclass
 class IsAdminFilter(BoundFilter):
