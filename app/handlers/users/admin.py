@@ -9,6 +9,7 @@ from app.utils.misc.sheets_append import add_user_array
 from app.utils.misc.wrappers import report_wrapper, search_wrapper, user_wrapper
 from app.utils.states import Exam
 from app.utils.misc.file_parsing import file_parser
+from app.utils.misc.get_trainee_calls import get_calls
 from app.keyboards.other_kb import get_cancel_button
 from app.keyboards.admin_kb import *
 from app.services.config import load_config
@@ -119,15 +120,29 @@ async def load_document(msg: types.Message, state: FSMContext):
 
 
 # @dp.callback_query_handler(IsAdmin(), exam_callback.filter(action='overload'), state=FSMAdmin.confirm)
-async def confirm_document(call: types.CallbackQuery, callback_data: dict):
-    await call.answer()
+async def confirm_document(call: types.CallbackQuery, state: FSMContext, callback_data: dict):
+    exam_data = await state.get_data()
     if int(callback_data.get('action_data')) == 1:
-        await call.message.answer('Хорошо, тогда мне нужна ссылка на YouTube ⏩\n'
-                                  'Если ссылок много, то пришли их через Ctrl+Enter')
-        await Exam.link.set()
+        if exam_data['stage_id'] == 3 and exam_data['result_id'] == 3:
+            await call.message.answer('Ну раз это ИОшка, тогда давай и звоночки подтянем! Скинь мне ссылки на звонки '
+                                      '<b>через Ctrl+Enter</b>.')
+            await Exam.calls.set()
+        else:
+            await state.update_data(calls=None)
+            await call.message.answer('Хорошо, тогда мне нужна ссылка на YouTube ⏩\n'
+                                      'Если ссылок много, то пришли их через Ctrl+Enter')
+            await Exam.link.set()
     else:
         await call.message.answer('Хорошо, тогда жду документ 📜')
         await Exam.document.set()
+    await call.answer()
+
+
+async def load_calls(msg: types.Message, state: FSMContext):
+    await state.update_data(calls=msg.text)
+    await msg.answer('Хорошо, тогда мне нужна ссылка на YouTube ⏩\n'
+                     'Если ссылок много, то пришли их через Ctrl+Enter')
+    await Exam.link.set()
 
 
 # Загрузка ссылки, обёртка результатов загрузки
@@ -193,6 +208,21 @@ async def employee_search_result(msg: types.Message, state: FSMContext):
     await state.finish()
 
 
+async def get_trainee_calls(msg: types.Message):
+    await msg.answer(
+        'Я пришлю тебе ссылки на звонки с одного из номеров стажеров за сегодняшний день. Выбери номер',
+        reply_markup=await get_trainee_phones(msg.from_user.id)
+    )
+    await Exam.calls_searching.set()
+
+
+async def calls_result(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
+    await call.answer()
+    calls = await get_calls(callback_data.get('action_data'))
+    await call.message.answer(text=calls)
+    await state.finish()
+
+
 """Распределение"""
 
 
@@ -247,7 +277,6 @@ async def route_trainees(call: types.CallbackQuery, callback_data: dict):
     await add_user_array(user_info=user_info, mentor_name=mentor_name)
 
 
-
 def setup(dp: Dispatcher):
     dp.register_message_handler(admin_start, is_admin=True, commands=['moderator'], chat_type=types.ChatType.PRIVATE)
     dp.register_message_handler(exam_start, Text(equals='Загрузить опрос ⏏'), is_admin=True,
@@ -257,6 +286,7 @@ def setup(dp: Dispatcher):
     dp.register_message_handler(load_document, content_types=['document'], state=Exam.document, is_admin=True)
     dp.register_callback_query_handler(confirm_document, exam_callback.filter(action='overload'), state=Exam.confirm,
                                        is_admin=True)
+    dp.register_message_handler(load_calls, state=Exam.calls, is_admin=True)
     dp.register_message_handler(load_link, is_admin=True, state=Exam.link)
     dp.register_callback_query_handler(del_callback_run, exam_callback.filter(action='delete'), is_admin=True)
     dp.register_message_handler(exam_search_start, Text(equals='Найти опрос 👀'), is_admin=True,
@@ -265,4 +295,8 @@ def setup(dp: Dispatcher):
     dp.register_message_handler(employee_search_start, Text(equals='Найти сотрудника 👨‍⚕'), is_admin=True,
                                 chat_type=types.ChatType.PRIVATE)
     dp.register_message_handler(employee_search_result, is_admin=True, state=Exam.user_searching)
+    dp.register_message_handler(get_trainee_calls, Text(equals="Звонки стажеров 📞"), chat_type=types.ChatType.PRIVATE,
+                                is_admin=True)
+    dp.register_callback_query_handler(calls_result, exam_callback.filter(action='phones'), is_admin=True,
+                                       state=Exam.calls_searching)
     dp.register_callback_query_handler(route_trainees, mentor_callback.filter(), is_admin=True)

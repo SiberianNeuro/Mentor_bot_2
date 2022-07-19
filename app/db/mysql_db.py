@@ -32,11 +32,10 @@ async def admin_check(obj) -> tuple:
 async def exam_processing(data: dict) -> tuple:
     with mysql_connection() as conn:
         cur = conn.cursor()
-        print(data)
         insert_exam = "INSERT INTO exams (document_id, " \
                       "user_id, stage_id, result_id, " \
-                      "score, date, retake_date, link) " \
-                      "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+                      "score, date, retake_date, calls, link) " \
+                      "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
         cur.execute(insert_exam, tuple(data.values()))
         conn.commit()
 
@@ -55,7 +54,7 @@ async def exam_processing(data: dict) -> tuple:
             logger.success(f'{user[0]} {user[1]} повышен(-а) до должности {user[2]}.')
 
         cur.execute('SELECT ex.id, ex.document_id, s.fullname, st.stage, r.result, '
-                    'ex.score, ex.link, DATE_FORMAT(ex.retake_date, "%%d.%%m.%%Y") '
+                    'ex.score, ex.link, ex.calls, DATE_FORMAT(ex.retake_date, "%%d.%%m.%%Y") '
                     'FROM exams ex '
                     'JOIN staffs s ON ex.user_id = s.id '
                     'JOIN stages st ON ex.stage_id = st.id '
@@ -70,7 +69,7 @@ async def db_search_exam(data: str) -> tuple:
     with mysql_connection() as conn:
         cur = conn.cursor()
         cur.execute('SELECT ex.id, ex.document_id, s.fullname, st.stage, r.result, '
-                    'ex.score, ex.link, DATE_FORMAT(ex.retake_date, "%%d.%%m.%%Y") '
+                    'ex.score, ex.link, ex.calls, DATE_FORMAT(ex.retake_date, "%%d.%%m.%%Y") '
                     'FROM exams ex '
                     'JOIN staffs s ON ex.user_id = s.id '
                     'JOIN stages st ON ex.stage_id = st.id '
@@ -196,3 +195,6 @@ async def get_chat_members(ids: list) -> list:
                   f"WHERE chat_id IN {(*ids, '')}")
         result = cur.fetchall()
         return result
+
+
+

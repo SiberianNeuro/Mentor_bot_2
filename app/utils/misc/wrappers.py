@@ -1,6 +1,5 @@
 from aiogram import types
 
-from app.db.mysql_db import user_db_roundtrip, get_user_info
 from loader import bot
 from app.keyboards import admin_kb
 from app.keyboards.admin_kb import get_delete_button
@@ -13,15 +12,16 @@ async def report_wrapper(data: tuple, msg: types.Message):
     param: m: объект телеграм API - сообщение
     """
     print(data)
-    id, document_id, fullname, stage, result, score, link = data[:7]
-    retake_date = data[7] if data[7] is not None else "-"
+    id, document_id, fullname, stage, result, score, link, calls = data[:8]
+    retake_date = data[8] if data[8] is not None else "-"
     if result == "Аттестация пройдена ✅":
         await msg.answer_document(document_id,
                                   caption=f'<b>{fullname}</b>\n'
-                    f'Формат опроса - {stage}\n'
-                    f'Статус аттестации - {result}\n'
-                    f'Набрано баллов - {score}\n'
-                    f'Ссылка YT: {link}',
+                                          f'Формат опроса - {stage}\n'
+                                          f'Статус аттестации - {result}\n'
+                                          f'Набрано баллов - {score}\n'
+                                          f'Ссылка YT: {link}\n'
+                                          f'Звонки: \n{calls}',
                                   reply_markup=await get_delete_button(id)
                                   )
         await msg.answer('Мы закончили, мы молодцы 👌', reply_markup=await admin_kb.get_admin_kb())
@@ -37,11 +37,11 @@ async def report_wrapper(data: tuple, msg: types.Message):
     elif result == "Аттестация не пройдена ❌":
         await msg.answer_document(document_id,
                                   caption=f'<b>{fullname}</b>\n'
-                    f'Формат опроса - {stage}\n'
-                    f'Статус аттестации - {result}\n'
-                    f'Набрано баллов - {score}\n'
-                    f'<i>Последняя аттестация. Увольнение сотрудника</i>\n'
-                    f'Ссылка YT: {link}',
+                                          f'Формат опроса - {stage}\n'
+                                          f'Статус аттестации - {result}\n'
+                                          f'Набрано баллов - {score}\n'
+                                          f'<i>Последняя аттестация. Увольнение сотрудника</i>\n'
+                                          f'Ссылка YT: {link}',
                                   reply_markup=await get_delete_button(id))
         await msg.answer('Мы закончили, мы молодцы 👌', reply_markup=await admin_kb.get_admin_kb())
         await bot.send_document(
@@ -63,11 +63,11 @@ async def report_wrapper(data: tuple, msg: types.Message):
     elif data[4] == "На пересдачу ⚠️":
         await msg.answer_document(document_id,
                                   caption=f'<b>{fullname}</b>\n'
-                                        f'Формат опроса - {stage}\n'
-                                        f'Статус аттестации - {result}\n'
-                                        f'Набрано баллов - {score}\n'
-                                        f'Дата переаттестации - {retake_date}\n'
-                                        f'Ссылка YT: {link}',
+                                          f'Формат опроса - {stage}\n'
+                                          f'Статус аттестации - {result}\n'
+                                          f'Набрано баллов - {score}\n'
+                                          f'Дата переаттестации - {retake_date}\n'
+                                          f'Ссылка YT: {link}',
                                   reply_markup=await get_delete_button(id)
                                   )
         await msg.answer('Мы закончили, мы молодцы 👌', reply_markup=await admin_kb.get_admin_kb())
@@ -88,34 +88,35 @@ async def search_wrapper(resp, msg: types.Message):
         param: m: объект телеграм API - сообщение
         """
     for data in resp:
-        retake_date = data[7] if data[7] is not None else "-"
+        retake_date = data[8] if data[8] is not None else "-"
         if data[4] == "Аттестация пройдена ✅":
             await msg.answer_document(data[1],
                                       caption=f'<b>{data[2]}</b>\n'
-                                            f'Формат опроса - {data[3]}\n'
-                                            f'Статус аттестации - {data[4]}\n'
-                                            f'Набрано баллов - {data[5]}\n'
-                                            f'Ссылка YT: {data[6]}',
+                                              f'Формат опроса - {data[3]}\n'
+                                              f'Статус аттестации - {data[4]}\n'
+                                              f'Набрано баллов - {data[5]}\n'
+                                              f'Ссылка YT: {data[6]}\n'
+                                              f'Звонки: \n{data[7]}',
                                       reply_markup=await get_delete_button(data[0])
                                       )
         elif data[4] == "Аттестация не пройдена ❌":
             await msg.answer_document(data[1],
                                       caption=f'<b>{data[2]}</b>\n'
-                                            f'Формат опроса - {data[3]}\n'
-                                            f'Статус аттестации - {data[4]}\n'
-                                            f'Набрано баллов - {data[5]}\n'
-                                            f'<i>Последняя аттестация. Увольнение сотрудника</i>\n'
-                                            f'Ссылка YT: {data[6]}',
+                                              f'Формат опроса - {data[3]}\n'
+                                              f'Статус аттестации - {data[4]}\n'
+                                              f'Набрано баллов - {data[5]}\n'
+                                              f'<i>Последняя аттестация. Увольнение сотрудника</i>\n'
+                                              f'Ссылка YT: {data[6]}',
                                       reply_markup=await get_delete_button(data[0])
                                       )
         elif data[4] == "На пересдачу ⚠️":
             await msg.answer_document(data[1],
                                       caption=f'<b>{data[2]}</b>\n'
-                                            f'Формат опроса - {data[3]}\n'
-                                            f'Статус аттестации - {data[4]}\n'
-                                            f'Набрано баллов - {data[5]}\n'
-                                            f'Дата переаттестации - {retake_date}\n'
-                                            f'Ссылка YT: {data[6]}',
+                                              f'Формат опроса - {data[3]}\n'
+                                              f'Статус аттестации - {data[4]}\n'
+                                              f'Набрано баллов - {data[5]}\n'
+                                              f'Дата переаттестации - {retake_date}\n'
+                                              f'Ссылка YT: {data[6]}',
                                       reply_markup=await get_delete_button(data[0])
                                       )
 
@@ -147,4 +148,3 @@ async def user_wrapper(user_data: tuple):
                  f'Контактный телефон: {user_info[9]}\n' \
                  f'e-mail: {user_info[10]}'
     return string, user_id
-

@@ -5,9 +5,12 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 class Exam(StatesGroup):
     document = State()
     confirm = State()
+    calls = State()
     link = State()
     exam_searching = State()
     user_searching = State()
+    calls_searching = State()
+
 
 # Состояния для регистрации пользователя
 class FSMRegister(StatesGroup):

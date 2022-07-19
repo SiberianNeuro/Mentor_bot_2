@@ -1,8 +1,6 @@
 import asyncio
 import logging
 
-from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
-
 from app.db.mysql_db import active_users, get_current_roles
 from loader import bot
 from app.utils.states import Mailing
@@ -12,7 +10,7 @@ from app.keyboards.other_kb import get_cancel_button
 
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
-from aiogram.utils.exceptions import ChatNotFound
+from aiogram.utils.exceptions import ChatNotFound, Unauthorized
 from aiogram.dispatcher.filters import Text
 
 """Стартовая команда и загрузка ролей"""
@@ -162,7 +160,11 @@ async def execute_mailing(c: types.CallbackQuery, state: FSMContext):
         except ChatNotFound as e:
             logging.exception(f"{user_list[i][1]}: {e}")
             await c.message.answer(f"{user_list[i][1]}: тест не получен. Пользователь отключил меня, либо не регистрировался.")
-        await asyncio.sleep(0.2)
+        except Unauthorized as e:
+            logging.exception(f"{user_list[i][1]}: {e}")
+            await c.message.answer(f"{user_list[i][1]}: тест не получен. Пользователь отключил меня, либо не регистрировался.")
+        finally:
+            await asyncio.sleep(0.2)
     await c.message.answer(f'Рассылка завершена, всего отправлено: {counter}')
     await state.finish()
 

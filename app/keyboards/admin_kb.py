@@ -1,7 +1,7 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.callback_data import CallbackData
 
-from app.db.get_buttons import get_stage_buttons, get_result_buttons, get_role_buttons, get_mentors_buttons
+from app.db.get_buttons import *
 
 
 # Стартовая админская клавиатура
@@ -10,7 +10,8 @@ async def get_admin_kb() -> ReplyKeyboardMarkup:
         KeyboardButton('Загрузить опрос ⏏'),
         KeyboardButton('Найти опрос 👀'),
         KeyboardButton('Рассылка тестов 🔊'),
-        KeyboardButton('Найти сотрудника 👨‍⚕')
+        KeyboardButton('Найти сотрудника 👨‍⚕'),
+        KeyboardButton('Звонки стажеров 📞')
     ]
     admin_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
     admin_keyboard.add(*buttons)
@@ -103,6 +104,13 @@ async def get_roles_keyboard() -> InlineKeyboardMarkup:
         roles_keyboard.insert(InlineKeyboardButton(text=text, callback_data=mailing_callback.new(action='worker', c_data=data)))
     return roles_keyboard
 
+
+async def get_trainee_phones(admin_id) -> InlineKeyboardMarkup:
+    buttons = await get_phone_buttons(admin_id)
+    phones_keyboard = InlineKeyboardMarkup(row_width=2)
+    for text, data in buttons:
+        phones_keyboard.insert(InlineKeyboardButton(text=text, callback_data=exam_callback.new(action='phones', action_data=data)))
+    return phones_keyboard
 
 """Клавиатура распределения"""
 
