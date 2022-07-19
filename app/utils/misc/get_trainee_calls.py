@@ -45,8 +45,11 @@ async def get_calls(phone_number: str) -> str:
             data = await response.json()
     string = ''
     try:
-        for num, call in enumerate(data['result']['data']):
-            string += f'<b>{num}</b>: https://app.uiscom.ru/system/media/talk/{call["communication_id"]}/{call["call_records"][0]}/\n'
+        if data['data']:
+            for num, call in enumerate(data['result']['data']):
+                string += f'<b>{num}</b>: https://app.uiscom.ru/system/media/talk/{call["communication_id"]}/{call["call_records"][0]}/\n'
+        else:
+            string = 'Звонков не найдено.'
     except KeyError:
         string = 'Звонков не найдено.'
     return string
