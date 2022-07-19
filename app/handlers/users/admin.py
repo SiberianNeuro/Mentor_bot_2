@@ -220,6 +220,7 @@ async def calls_result(call: types.CallbackQuery, callback_data: dict, state: FS
     await call.answer()
     calls = await get_calls(callback_data.get('action_data'))
     await call.message.answer(text=calls)
+    await call.message.delete()
     await state.finish()
 
 
