@@ -27,7 +27,17 @@ async def get_calls(phone_number: str) -> str:
             "limit": 10000,
             "access_token": "e5kzqpauylsjtb2r5vkam8d0ubb0ubejejc6qc0o",
             "date_from": f"{str(date.today())} 00:00:00",
-            "date_till": f"{str(date.today())} 23:59:59"
+            "date_till": f"{str(date.today())} 23:59:59",
+            "fields": [
+                "id",
+                "is_lost",
+                "direction",
+                "start_time",
+                "call_records",
+                "contact_phone_number",
+                "virtual_phone_number",
+                "employees"
+            ]
         }
     }
     async with aiohttp.ClientSession() as session:

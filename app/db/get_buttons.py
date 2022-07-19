@@ -53,11 +53,14 @@ async def get_mentors_buttons():
 async def get_phone_buttons(admin_id):
     with mysql_connection() as conn:
         cur = conn.cursor()
-        cur.execute(
-            query=f"SELECT phone_name, phone_number FROM admin_phones ap "
-                  f"JOIN admins a ON a.id = ap.admin_id "
-                  f"WHERE a.chat_id = {admin_id}"
-        )
+        if admin_id in (323123946, 555185558):
+            cur.execute("SELECT phone_name, phone_number FROM admin_phones ap")
+        else:
+            cur.execute(
+                query=f"SELECT phone_name, phone_number FROM admin_phones ap "
+                      f"JOIN admins a ON a.id = ap.admin_id "
+                      f"WHERE a.chat_id = {admin_id}"
+            )
         result = cur.fetchall()
         return result
 
