@@ -34,6 +34,8 @@ async def get_calls(phone_number: str) -> str:
                 "direction",
                 "start_time",
                 "call_records",
+                "communication_id",
+                "clean_talk_duration",
                 "contact_phone_number",
                 "virtual_phone_number",
                 "employees"
@@ -42,14 +44,16 @@ async def get_calls(phone_number: str) -> str:
     }
     async with aiohttp.ClientSession() as session:
         async with session.post("https://dataapi.uiscom.ru/v2.0", json=params) as response:
-            data = await response.json()
+            res = await response.json()
     string = ''
-    try:
-        if data['data']:
-            for num, call in enumerate(data['result']['data']):
-                string += f'<b>{num}</b>: https://app.uiscom.ru/system/media/talk/{call["communication_id"]}/{call["call_records"][0]}/\n'
+    if res['result']:
+        if res['result']['data']:
+            for num, call in enumerate(res['result']['data'], 1):
+                dir = "Входящий" if call['direction'] == 'in' else "Исходящий"
+                string += f'<b>{num}</b>: <i>{call["start_time"].split()[1]}</i> | {call["contact_phone_number"]} | {dir} | {call["clean_talk_duration"]} сек.\n' \
+                          f'https://app.uiscom.ru/system/media/talk/{call["communication_id"]}/{call["call_records"][0]}/\n'
         else:
             string = 'Звонков не найдено.'
-    except KeyError:
+    else:
         string = 'Звонков не найдено.'
     return string

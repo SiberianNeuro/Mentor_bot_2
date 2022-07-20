@@ -28,9 +28,6 @@ async def admin_start(msg: types.Message, state: FSMContext):
                      f'👉🏻 Нажми кнопку <b>"Рассылка"</b>, если нужна помощь в рассылке тестов',
                      reply_markup=await get_admin_kb())
     await msg.delete()
-    await msg.bot.set_my_commands([
-        types.BotCommand('moderator', 'Вернуться в админ-панель')
-    ])
 
 
 """Загрузка опроса"""
@@ -210,9 +207,10 @@ async def employee_search_result(msg: types.Message, state: FSMContext):
 
 async def get_trainee_calls(msg: types.Message):
     await msg.answer(
-        'Я пришлю тебе ссылки на звонки с одного из номеров стажеров за сегодняшний день. Выбери номер',
-        reply_markup=await get_trainee_phones(msg.from_user.id)
+        'Я пришлю тебе ссылки на звонки с одного из номеров стажеров за сегодняшний день. Если передумаешь - нажми <b>Отмена</b>.',
+        reply_markup=await get_cancel_button()
     )
+    await msg.answer('Выбери номер:', reply_markup=await get_trainee_phones(msg.from_user.id))
     await Exam.calls_searching.set()
 
 
