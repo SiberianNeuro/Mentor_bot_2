@@ -217,7 +217,7 @@ async def get_trainee_calls(msg: types.Message):
 async def calls_result(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
     await call.answer()
     calls = await get_calls(callback_data.get('action_data'))
-    await call.message.answer(text=calls)
+    await call.message.answer(text=calls, reply_markup=await get_admin_kb())
     await call.message.delete()
     await state.finish()
 
