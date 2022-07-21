@@ -28,11 +28,11 @@ async def report_wrapper(data: tuple, msg: types.Message):
         if stage in ("Опрос на И.О.", "Опрос на врача", "Аттестация стажера L1"):
             await bot.send_document(
                 -781832035, document_id,
-                caption=f'<b>{fullname}</b>\nФормат опроса: {stage}\nСтатус аттестации: {result}\nСсылка YT: {link}'
+                caption=f'<b>{fullname}</b>\nФормат опроса: {stage}\nСтатус аттестации: {result}\nСсылка YT: {link}\nЗвонки:\n{calls}'
             )
         await bot.send_document(
             -1001776821827, document_id,
-            caption=f'<b>{fullname}</b>\nФормат опроса: {stage}\nСтатус аттестации: {result}\nСсылка YT: {link}'
+            caption=f'<b>{fullname}</b>\nФормат опроса: {stage}\nСтатус аттестации: {result}\nСсылка YT: {link}\nЗвонки:\n{calls}'
         )
     elif result == "Аттестация не пройдена ❌":
         await msg.answer_document(document_id,
