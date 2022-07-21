@@ -5,7 +5,7 @@ from aiogram_calendar import SimpleCalendar, simple_cal_callback
 
 from loguru import logger
 
-from app.db.mysql_db import exam_processing, db_search_exam, delete_exam, get_user_info, get_admin
+from app.db.mysql_db import exam_processing, db_search_exam, delete_exam, get_user_info, get_admin, deactivate_user
 from app.utils.misc.sheets_append import add_user_array
 from app.utils.misc.wrappers import report_wrapper, search_wrapper, user_wrapper
 from app.utils.states import Exam
@@ -158,10 +158,15 @@ async def load_link(msg: types.Message, state: FSMContext):
 # @dp.callback_query_handler(IsAdmin(), exam_callback.filter(action='delete'))
 async def del_callback_run(call: types.CallbackQuery, callback_data: dict):
     await delete_exam(callback_data.get("action_data"))
-    logger.info(f'@{call.from_user.username} delete exam.')
+    logger.warning(f'@{call.from_user.username} delete exam.')
     await call.answer(text='Информация удалена', show_alert=True)
     await call.message.delete()
 
+
+async def deactivate_callback(call: types.CallbackQuery, callback_data: dict):
+    user = await deactivate_user(callback_data.get("action_data"))
+    logger.warning(f'@{call.from_user.username} deactivate user {user[0]}')
+    await call.answer(text=f'Пользователь {user[0]} деактивирован', show_alert=True)
 
 """Поиск"""
 
@@ -201,7 +206,7 @@ async def employee_search_result(msg: types.Message, state: FSMContext):
     else:
         for user in result:
             user_data = await user_wrapper(user)
-            await msg.answer(f'{user_data[0]}')
+            await msg.answer(f'{user_data[0]}', reply_markup=await get_deactivate_button(user_data[1]))
         await msg.answer('Готово!👌', reply_markup=await get_admin_kb())
     await state.finish()
 
@@ -223,16 +228,20 @@ async def get_calls_date(call: types.CallbackQuery, state: FSMContext, callback_
 
 
 async def calls_result(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
-    selected, date = await SimpleCalendar().process_selection(call, callback_data)
+    selected, phone_date = await SimpleCalendar().process_selection(call, callback_data)
     if selected:
-        print(date.strftime("%Y-%m-%d"))
-        phones = await state.get_data()
-        calls = await get_calls(phone_number=phones['phone'], call_date=date.strftime("%Y-%m-%d"))
-        await call.message.answer(text=calls, reply_markup=await get_admin_kb())
-        await call.answer()
-        await call.message.delete()
-        await state.finish()
-
+        from datetime import date
+        try:
+            assert phone_date.date() <= date.today()
+            phones = await state.get_data()
+            calls = await get_calls(phone_number=phones['phone'], call_date=phone_date.strftime("%Y-%m-%d"))
+            await call.message.answer(text=calls, reply_markup=await get_admin_kb())
+            await call.answer()
+            await call.message.delete()
+            await state.finish()
+        except AssertionError:
+            await call.message.edit_text('Я не могу заглянуть в будущее 👻',
+                                         reply_markup=await SimpleCalendar().start_calendar())
 
 """Распределение"""
 
@@ -300,6 +309,7 @@ def setup(dp: Dispatcher):
     dp.register_message_handler(load_calls, state=Exam.calls, is_admin=True)
     dp.register_message_handler(load_link, is_admin=True, state=Exam.link)
     dp.register_callback_query_handler(del_callback_run, exam_callback.filter(action='delete'), is_admin=True)
+    dp.register_callback_query_handler(deactivate_callback, exam_callback.filter(action='deactivate'), is_admin=True)
     dp.register_message_handler(exam_search_start, Text(equals='Найти опрос 👀'), is_admin=True,
                                 chat_type=types.ChatType.PRIVATE)
     dp.register_message_handler(exam_search_result, is_admin=True, state=Exam.exam_searching)

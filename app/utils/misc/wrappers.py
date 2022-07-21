@@ -121,30 +121,30 @@ async def search_wrapper(resp, msg: types.Message):
                                       )
 
 
-async def user_wrapper(user_data: tuple):
+async def user_wrapper(user_data: dict):
     """
 
     :param user_data: собранные данные по пользователю
     :return: обработанные данные по пользователю
     """
     user_info = user_data
-    user_id = user_info[0]
+    user_id = user_info['id']
     string = ''
-    if user_info[-1] in (9, 10, 11):
-        string = f'<b>{user_info[1]}</b> {user_info[2]}\n\n' \
-                 f'Должность: {user_info[3]}\n' \
-                 f'Город: {user_info[4]}\n' \
-                 f'Мед. образование: {user_info[5]}\n\n' \
-                 f'Контактный телефон: {user_info[9]}\n' \
-                 f'e-mail: {user_info[10]}'
-    elif user_info[-1] in (5, 6, 7, 8):
-        string = f'<b>{user_info[1]}</b> {user_info[2]}\n\n' \
-                 f'Должность: {user_info[3]}\n' \
-                 f'Город: {user_info[4]}\n' \
-                 f'Ординатура: {user_info[5]}\n' \
-                 f'Специальность: {user_info[6]}\n' \
-                 f'Год поступления: {user_info[7]}\n' \
-                 f'Год выпуска: {user_info[8]}\n\n' \
-                 f'Контактный телефон: {user_info[9]}\n' \
-                 f'e-mail: {user_info[10]}'
+    if user_info["role_id"] in (9, 10, 11):
+        string = f'<b>{user_info["fullname"]}</b> {user_info["username"]}\n<u>{user_info["active"]}</u>\n\n' \
+                 f'Должность: {user_info["name"]}\n' \
+                 f'Город: {user_info["city"]}\n' \
+                 f'Мед. образование: {user_info["stage"]}\n\n' \
+                 f'Контактный телефон: {user_info["phone"]}\n' \
+                 f'e-mail: {user_info["email"]}'
+    elif user_info["role_id"] in (5, 6, 7, 8):
+        string = f'<b>{user_info["fullname"]}</b> {user_info["username"]}\n<u>{user_info["active"]}</u>\n\n' \
+                 f'Должность: {user_info["name"]}\n' \
+                 f'Город: {user_info["city"]}\n' \
+                 f'Ординатура: {user_info["stage"]}\n' \
+                 f'Специальность: {user_info["profession"]}\n' \
+                 f'Год поступления: {user_info["start_year"]}\n' \
+                 f'Год выпуска: {user_info["end_year"]}\n\n' \
+                 f'Контактный телефон: {user_info["phone"]}\n' \
+                 f'e-mail: {user_info["email"]}'
     return string, user_id

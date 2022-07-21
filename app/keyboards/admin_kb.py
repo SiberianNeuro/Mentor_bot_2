@@ -64,6 +64,15 @@ async def get_delete_button(id: int) -> InlineKeyboardMarkup:
     return delete_keyboard
 
 
+async def get_deactivate_button(id: int) -> InlineKeyboardMarkup:
+    button = InlineKeyboardButton(
+        text='Деактивировать ❌', callback_data=exam_callback.new(action='deactivate', action_data=id)
+    )
+    deactivate_keyboard = InlineKeyboardMarkup(row_width=1)
+    deactivate_keyboard.add(button)
+    return deactivate_keyboard
+
+
 """Клавиатуры рассылок"""
 
 mailing_callback = CallbackData('mailing', 'action', 'c_data')

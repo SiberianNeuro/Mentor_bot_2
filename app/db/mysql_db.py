@@ -88,6 +88,16 @@ async def delete_exam(data: int):
         conn.commit()
 
 
+async def deactivate_user(data: int):
+    with mysql_connection() as conn:
+        cur = conn.cursor()
+        cur.execute(f"UPDATE staffs SET active = IF(id = {data}, 0, active)")
+        conn.commit()
+        cur.execute(f"SELECT username FROM staffs WHERE id = {data}")
+        result = cur.fetchone()
+        return result
+
+
 """Запросы к таблицам сотрудника"""
 
 
@@ -131,17 +141,18 @@ async def user_db_roundtrip(state: tuple) -> tuple:
 
 async def get_user_info(user: Union[str, int]) -> tuple:
     with mysql_connection() as conn:
-        cur = conn.cursor()
+        cur = conn.cursor(cursor=pymysql.cursors.DictCursor)
         if type(user) is str:
             cur.execute(
                 query="SELECT s.id, fullname, username, r.name, city, t.stage, profession, start_year, end_year, "
-                      "phone, email, s.role_id FROM staffs s "
+                      "phone, email, s.role_id, IF(active = 1, 'Активирован', 'Деактивирован') AS active FROM staffs s "
                       "JOIN traineeships t on t.id = s.traineeship_id "
                       "JOIN roles r on r.id = s.role_id "
-                      "WHERE fullname LIKE %s AND active = 1",
+                      "WHERE fullname LIKE %s",
                 args=('%' + user.title() + '%',)
             )
             result = cur.fetchall()
+            print(result)
         elif type(user) is int:
             cur.execute(
                 query="SELECT s.id, fullname, username, r.name, city, t.stage, profession, start_year, end_year, "
