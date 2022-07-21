@@ -2,7 +2,9 @@ import aiohttp
 from datetime import date
 
 
-async def get_calls(phone_number: str) -> str:
+async def get_calls(phone_number: str, call_date: str) -> str:
+    print(call_date)
+    print(phone_number)
     params = {
         "jsonrpc": "2.0",
         "id": 1,
@@ -26,8 +28,8 @@ async def get_calls(phone_number: str) -> str:
             "offset": 0,
             "limit": 10000,
             "access_token": "e5kzqpauylsjtb2r5vkam8d0ubb0ubejejc6qc0o",
-            "date_from": f"{str(date.today())} 00:00:00",
-            "date_till": f"{str(date.today())} 23:59:59",
+            "date_from": f"{call_date} 00:00:00",
+            "date_till": f"{call_date} 23:59:59",
             "fields": [
                 "id",
                 "is_lost",
@@ -46,6 +48,7 @@ async def get_calls(phone_number: str) -> str:
         async with session.post("https://dataapi.uiscom.ru/v2.0", json=params) as response:
             res = await response.json()
     string = ''
+    print(res)
     if res['result']:
         if res['result']['data']:
             for num, call in enumerate(res['result']['data'], 1):

@@ -1,6 +1,7 @@
 from aiogram.dispatcher import FSMContext
 from aiogram import types, Dispatcher
 from aiogram.dispatcher.filters import Text
+from aiogram_calendar import SimpleCalendar, simple_cal_callback
 
 from loguru import logger
 
@@ -214,12 +215,23 @@ async def get_trainee_calls(msg: types.Message):
     await Exam.calls_searching.set()
 
 
-async def calls_result(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
+async def get_calls_date(call: types.CallbackQuery, state: FSMContext, callback_data: dict):
+    await state.update_data(phone=callback_data.get('action_data'))
+    await call.message.answer('Хорошо, за какой день берем звонки?', reply_markup=await SimpleCalendar().start_calendar())
     await call.answer()
-    calls = await get_calls(callback_data.get('action_data'))
-    await call.message.answer(text=calls, reply_markup=await get_admin_kb())
     await call.message.delete()
-    await state.finish()
+
+
+async def calls_result(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
+    selected, date = await SimpleCalendar().process_selection(call, callback_data)
+    if selected:
+        print(date.strftime("%Y-%m-%d"))
+        phones = await state.get_data()
+        calls = await get_calls(phone_number=phones['phone'], call_date=date.strftime("%Y-%m-%d"))
+        await call.message.answer(text=calls, reply_markup=await get_admin_kb())
+        await call.answer()
+        await call.message.delete()
+        await state.finish()
 
 
 """Распределение"""
@@ -296,6 +308,7 @@ def setup(dp: Dispatcher):
     dp.register_message_handler(employee_search_result, is_admin=True, state=Exam.user_searching)
     dp.register_message_handler(get_trainee_calls, Text(equals="Звонки стажеров 📞"), chat_type=types.ChatType.PRIVATE,
                                 is_admin=True)
-    dp.register_callback_query_handler(calls_result, exam_callback.filter(action='phones'), is_admin=True,
+    dp.register_callback_query_handler(get_calls_date, exam_callback.filter(action='phones'), is_admin=True, state=Exam.calls_searching)
+    dp.register_callback_query_handler(calls_result, simple_cal_callback.filter(), is_admin=True,
                                        state=Exam.calls_searching)
     dp.register_callback_query_handler(route_trainees, mentor_callback.filter(), is_admin=True)
