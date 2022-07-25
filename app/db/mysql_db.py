@@ -120,7 +120,7 @@ async def is_register(obj) -> bool:
 
 async def user_db_roundtrip(state: tuple) -> tuple:
     with mysql_connection() as conn:
-        cur = conn.cursor(cursor=pymysql.cursors.DictCursor)
+        cur = conn.cursor()
         append_user = "INSERT INTO staffs (fullname, city, role_id, traineeship_id, profession, " \
                       "start_year, end_year, phone, email, birthdate, username, chat_id, reg_date) VALUES " \
                       "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)"
@@ -128,7 +128,7 @@ async def user_db_roundtrip(state: tuple) -> tuple:
         conn.commit()
         cur.close()
 
-        cur = conn.cursor()
+        cur = conn.cursor(cursor=pymysql.cursors.DictCursor)
         get_user = "SELECT s.id, fullname, username, r.name, city, t.stage, profession, start_year, end_year, " \
                    "phone, email, s.role_id, IF(active = 1, 'Активирован', 'Деактивирован') AS active FROM staffs s " \
                    "JOIN traineeships t on t.id = s.traineeship_id " \
