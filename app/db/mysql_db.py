@@ -139,7 +139,7 @@ async def user_db_roundtrip(state: tuple) -> tuple:
         return result
 
 
-async def get_user_info(user: Union[str, int]) -> tuple:
+async def get_user_info(user: Union[str, int]) -> dict:
     with mysql_connection() as conn:
         cur = conn.cursor(cursor=pymysql.cursors.DictCursor)
         if type(user) is str:

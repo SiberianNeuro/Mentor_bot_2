@@ -7,20 +7,17 @@ from datetime import date, timedelta
 from app.services.config import load_config
 
 
-
 config = load_config('.env')
 
 
+async def add_user_array(user_info: dict, mentor_name: str):
 
-
-async def add_user_array(user_info: tuple, mentor_name: str):
-
-    fullname, username = user_info[1:3]
-    city, stage = user_info[4:6]
-    profession = f'Специальность: {user_info[6]}\n' \
-                 f'Год поступления: {user_info[7]}\n' \
-                 f'Год выпуска: {user_info[8]}'
-    phone, email, role_id = user_info[9:]
+    fullname, username = user_info['fullname'], user_info['username']
+    city, stage = user_info['city'], user_info['stage']
+    profession = f'Специальность: {user_info["profession"]}\n' \
+                 f'Год поступления: {user_info["start_year"]}\n' \
+                 f'Год выпуска: {user_info["end_year"]}'
+    phone, email, role_id = user_info['phone'], user_info['email'], user_info['role_id']
 
     mentor_fullname = mentor_name.split(' ')
     mentor_shortname = f'{mentor_fullname[0]} {mentor_fullname[1][0]}.{mentor_fullname[2][0]}.'
