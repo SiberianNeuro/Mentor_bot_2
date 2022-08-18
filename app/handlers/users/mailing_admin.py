@@ -30,12 +30,12 @@ async def mailing(m: types.Message, state: FSMContext):
 # Загрузка первой роли, потом предложение выбрать дополнительную роль или подтвердить текущие
 # @dp.callback_query_handler(IsAdmin(), mailing_callback.filter(action='worker'), state=Mailing.workers)
 async def get_workers(c: types.CallbackQuery, state: FSMContext, callback_data: dict):
-    roles = []
-    roles.append(callback_data.get('c_data'))
+    roles = [callback_data.get('c_data')]
     await state.update_data(roles=roles)
     await c.answer()
-    await c.message.answer('Хорошо, должность принял, сотрудников нашел. Добавим еще одну, или переходим к ссылкам на тест?',
-                           reply_markup=await get_mailing_keyboard())
+    await c.message.answer(
+        'Хорошо, должность принял, сотрудников нашел. Добавим еще одну, или переходим к ссылкам на тест?',
+        reply_markup=await get_mailing_keyboard())
     await c.message.delete()
 
 
@@ -70,10 +70,12 @@ async def more_workers(c: types.CallbackQuery, state: FSMContext, callback_data:
     async with state.proxy() as data:
         data['roles'].append(callback_data.get('c_data'))
         logging.info(f'{data["roles"]}')
-    await c.message.answer('Хорошо, должность принял, сотрудников нашел. Добавим еще одну, или переходим к ссылкам на тест?',
-                           reply_markup=await get_mailing_keyboard())
+    await c.message.answer(
+        'Хорошо, должность принял, сотрудников нашел. Добавим еще одну, или переходим к ссылкам на тест?',
+        reply_markup=await get_mailing_keyboard())
     await Mailing.workers.set()
     await c.message.delete()
+
 
 """Переход в состояние загрузки ссылок на тест"""
 
@@ -89,8 +91,7 @@ async def start_text(c: types.CallbackQuery):
 # Прием первой ссылки на тест текстовым сообщением, развилка на подтверждение или повторную загрузку
 # @dp.message_handler(IsAdmin(), state=Mailing.start_mailing)
 async def start_mailing(m: types.Message, state: FSMContext):
-    text_list = []
-    text_list.append(m.text)
+    text_list = [m.text]
     await state.update_data(text_list=text_list)
     await m.answer("Супер, ссылку вижу. Добавляем еще, или переходим к рассылке?",
                    reply_markup=await get_mailing_keyboard())
@@ -113,11 +114,11 @@ async def chose_mailing(c: types.CallbackQuery, state: FSMContext, callback_data
             await c.message.answer('Давай проверим, что получилось:')
             for text in data['text_list']:
                 await c.message.answer(text=f'Привет! Приготовил тебе <a href="{text}">ссылку</a> '
-                                                              f'на тест ⚡\n\n'
-                                                              f'⏰ Длительность тестирования 30 минут, после чего форма '
-                                                              f'для отправки ответов будет закрыта\n\n'
-                                                              f'Не забудь свой гугл-аккаунт 📲\n\n'
-                                                              f'Удачи 🍀')
+                                            f'на тест ⚡\n\n'
+                                            f'⏰ Длительность тестирования 30 минут, после чего форма '
+                                            f'для отправки ответов будет закрыта\n\n'
+                                            f'Не забудь свой гугл-аккаунт 📲\n\n'
+                                            f'Удачи 🍀')
             await c.message.answer('Если тексты верны, жми кнопку отправить. Если передумал, напиши <b>/mailing</b>,'
                                    'Или напиши <b>отмена</b>',
                                    reply_markup=await get_execute_button())
@@ -131,7 +132,7 @@ async def process_mailing(m: types.Message, state: FSMContext):
         data['text_list'].append(m.text)
         logging.info(f'{data["text_list"]}')
     await m.answer("Супер, ссылку вижу. Добавляем еще, или переходим к рассылке?",
-                       reply_markup=await get_mailing_keyboard())
+                   reply_markup=await get_mailing_keyboard())
     await Mailing.confirm_mailing.set()
 
 
@@ -150,19 +151,22 @@ async def execute_mailing(c: types.CallbackQuery, state: FSMContext):
     logging.info(f'{user_list}')
     for i in range(len(user_list)):
         try:
-            await bot.send_message(chat_id=user_list[i][0], text=f'Привет! Приготовил тебе <a href="{text_list[i]}">ссылку</a>'
-                                                              f'на тест ⚡\n\n'
-                                                              f'⏰ Длительность тестирования 30 минут, после чего форма '
-                                                              f'для отправки ответов будет закрыта\n\n'
-                                                              f'Не забудь свой гугл-аккаунт 📲\n\n'
-                                                              f'Удачи 🍀')
+            await bot.send_message(chat_id=user_list[i][0],
+                                   text=f'Привет! Приготовил тебе <a href="{text_list[i]}">ссылку</a>'
+                                        f'на тест ⚡\n\n'
+                                        f'⏰ Длительность тестирования 30 минут, после чего форма '
+                                        f'для отправки ответов будет закрыта\n\n'
+                                        f'Не забудь свой гугл-аккаунт 📲\n\n'
+                                        f'Удачи 🍀')
             counter += 1
         except ChatNotFound as e:
             logging.exception(f"{user_list[i][1]}: {e}")
-            await c.message.answer(f"{user_list[i][1]}: тест не получен. Пользователь отключил меня, либо не регистрировался.")
+            await c.message.answer(
+                f"{user_list[i][1]}: тест не получен. Пользователь отключил меня, либо не регистрировался.")
         except Unauthorized as e:
             logging.exception(f"{user_list[i][1]}: {e}")
-            await c.message.answer(f"{user_list[i][1]}: тест не получен. Пользователь отключил меня, либо не регистрировался.")
+            await c.message.answer(
+                f"{user_list[i][1]}: тест не получен. Пользователь отключил меня, либо не регистрировался.")
         finally:
             await asyncio.sleep(0.2)
     await c.message.answer(f'Рассылка завершена, всего отправлено: {counter}')
@@ -170,14 +174,23 @@ async def execute_mailing(c: types.CallbackQuery, state: FSMContext):
 
 
 def setup(dp: Dispatcher):
-    dp.register_message_handler(mailing, Text(equals='Рассылка тестов 🔊'), state="*", is_admin=True, chat_type=types.ChatType.PRIVATE)
-    dp.register_callback_query_handler(get_workers, mailing_callback.filter(action='worker'), state=Mailing.workers, is_admin=True)
-    dp.register_callback_query_handler(chose_workers, mailing_callback.filter(action='load'), state=Mailing.workers, is_admin=True)
-    dp.register_callback_query_handler(chose_workers, mailing_callback.filter(action='confirm'), state=Mailing.workers, is_admin=True)
-    dp.register_callback_query_handler(more_workers, mailing_callback.filter(action='worker'), state=Mailing.process_workers, is_admin=True)
-    dp.register_callback_query_handler(start_text, mailing_callback.filter(action='execute'), state=Mailing.workers, is_admin=True)
+    dp.register_message_handler(mailing, Text(equals='Рассылка тестов 🔊'), state="*", is_admin=True,
+                                chat_type=types.ChatType.PRIVATE)
+    dp.register_callback_query_handler(get_workers, mailing_callback.filter(action='worker'), state=Mailing.workers,
+                                       is_admin=True)
+    dp.register_callback_query_handler(chose_workers, mailing_callback.filter(action='load'), state=Mailing.workers,
+                                       is_admin=True)
+    dp.register_callback_query_handler(chose_workers, mailing_callback.filter(action='confirm'), state=Mailing.workers,
+                                       is_admin=True)
+    dp.register_callback_query_handler(more_workers, mailing_callback.filter(action='worker'),
+                                       state=Mailing.process_workers, is_admin=True)
+    dp.register_callback_query_handler(start_text, mailing_callback.filter(action='execute'), state=Mailing.workers,
+                                       is_admin=True)
     dp.register_message_handler(start_mailing, state=Mailing.start_mailing, is_admin=True)
-    dp.register_callback_query_handler(chose_mailing, mailing_callback.filter(action='load'), state=Mailing.confirm_mailing, is_admin=True)
-    dp.register_callback_query_handler(chose_mailing, mailing_callback.filter(action='confirm'), state=Mailing.confirm_mailing, is_admin=True)
+    dp.register_callback_query_handler(chose_mailing, mailing_callback.filter(action='load'),
+                                       state=Mailing.confirm_mailing, is_admin=True)
+    dp.register_callback_query_handler(chose_mailing, mailing_callback.filter(action='confirm'),
+                                       state=Mailing.confirm_mailing, is_admin=True)
     dp.register_message_handler(process_mailing, state=Mailing.process_mailing, is_admin=True)
-    dp.register_callback_query_handler(execute_mailing, mailing_callback.filter(action='execute'), state=Mailing.confirm_mailing, is_admin=True)
+    dp.register_callback_query_handler(execute_mailing, mailing_callback.filter(action='execute'),
+                                       state=Mailing.confirm_mailing, is_admin=True)

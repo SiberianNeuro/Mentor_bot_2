@@ -105,7 +105,7 @@ async def is_register(obj) -> bool:
     with mysql_connection() as conn:
         cur = conn.cursor()
 
-        cur.execute("SELECT chat_id FROM staffs WHERE active = 1 AND chat_id = %s", obj)
+        cur.execute("SELECT chat_id FROM staffs WHERE active = 1 AND chat_id = %s", str(obj))
 
         if cur.fetchone() is not None:
             return True
@@ -118,7 +118,7 @@ async def is_register(obj) -> bool:
                 return False
 
 
-async def user_db_roundtrip(state: tuple) -> tuple:
+async def user_db_roundtrip(state: tuple) -> dict:
     with mysql_connection() as conn:
         cur = conn.cursor()
         append_user = "INSERT INTO staffs (fullname, city, role_id, traineeship_id, profession, " \
@@ -134,7 +134,7 @@ async def user_db_roundtrip(state: tuple) -> tuple:
                    "JOIN traineeships t on t.id = s.traineeship_id " \
                    "JOIN roles r on r.id = s.role_id " \
                    "WHERE chat_id = %s AND active = 1"
-        cur.execute(get_user, state[-1])
+        cur.execute(get_user, str(state[-1]))
         result = cur.fetchone()
         return result
 
@@ -160,7 +160,7 @@ async def get_user_info(user: Union[str, int]) -> dict:
                       "JOIN traineeships t on t.id = s.traineeship_id "
                       "JOIN roles r on r.id = s.role_id "
                       "WHERE chat_id = %s AND active = 1",
-                args=user
+                args=str(user)
             )
             result = cur.fetchone()
     return result
@@ -198,12 +198,12 @@ async def get_admin(admin_id) -> dict:
     return result
 
 
-async def get_chat_members(ids: list) -> list:
+async def get_chat_members(ids: list) -> dict:
     with mysql_connection() as conn:
         cur = conn.cursor(cursor=pymysql.cursors.DictCursor)
         cur.execute(
             query=f"SELECT fullname, city FROM staffs "
-                  f"WHERE chat_id IN {(*ids, '')}")
+                  f"WHERE chat_id IN {(*ids, 'fake')}")
         result = cur.fetchall()
         return result
 

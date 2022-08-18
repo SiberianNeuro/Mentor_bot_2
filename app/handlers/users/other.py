@@ -191,7 +191,8 @@ async def finish_register(msg: types.Message, state: FSMContext):
     config = load_config('.env')
     try:
         birthdate = datetime.strptime(msg.text, "%d.%m.%Y")
-        await state.update_data(bdate=str(birthdate), username='@' + msg.from_user.username, chat_id=msg.from_user.id)
+        await state.update_data(bdate=str(birthdate), username='@' + msg.from_user.username,
+                                chat_id=str(msg.from_user.id))
         user = await state.get_data()
         user_info = await user_db_roundtrip(tuple(user.values()))
         await msg.answer('Спасибо, что уделил мне время 👏\nРегистрация завершена :)',

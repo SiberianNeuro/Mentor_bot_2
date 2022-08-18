@@ -213,7 +213,8 @@ async def employee_search_result(msg: types.Message, state: FSMContext):
 
 async def get_trainee_calls(msg: types.Message):
     await msg.answer(
-        'Я пришлю тебе ссылки на звонки с одного из номеров стажеров за сегодняшний день. Если передумаешь - нажми <b>Отмена</b>.',
+        'Я пришлю тебе ссылки на звонки с одного из номеров стажеров за сегодняшний день. Если передумаешь - нажми '
+        '<b>Отмена</b>.',
         reply_markup=await get_cancel_button()
     )
     await msg.answer('Выбери номер:', reply_markup=await get_trainee_phones(msg.from_user.id))
@@ -222,7 +223,8 @@ async def get_trainee_calls(msg: types.Message):
 
 async def get_calls_date(call: types.CallbackQuery, state: FSMContext, callback_data: dict):
     await state.update_data(phone=callback_data.get('action_data'))
-    await call.message.answer('Хорошо, за какой день берем звонки?', reply_markup=await SimpleCalendar().start_calendar())
+    await call.message.answer('Хорошо, за какой день берем звонки?',
+                              reply_markup=await SimpleCalendar().start_calendar())
     await call.answer()
     await call.message.delete()
 
@@ -277,7 +279,8 @@ async def route_trainees(call: types.CallbackQuery, callback_data: dict):
                                        f'<b>{l3_chat["invite_link"]}</b>\n'
                                        f'А по этой ссылке ты попадешь в чат своей учебной группы 👩‍🎓\n'
                                        f'Твой наставник, {mentor_name} {mentor_username}, будет на связи с тобой '
-                                       f'всегда и по любым вопросам'
+                                       f'всегда и по любым вопросам 🤩\n'
+                                       f'Обязательно нажми на каждую ссылку, чтобы попасть чат 😇'
         )
     else:
         await call.bot.send_message(
@@ -285,7 +288,8 @@ async def route_trainees(call: types.CallbackQuery, callback_data: dict):
                                        f'<b>{l1_chat["invite_link"]}</b>\n'
                                        f'По этой ссылке ты попадешь в чат своей учебной группы 👩‍🎓\n'
                                        f'Твой наставник, {mentor_name} {mentor_username}, будет на связи с тобой '
-                                       f'всегда и по любым вопросам'
+                                       f'всегда и по любым вопросам 🤩\n'
+                                       f'Обязательно нажми на каждую ссылку, чтобы попасть чат 😇'
         )
     user_info = await get_user_info(user_chat_id)
     user = await user_wrapper(user_info)
@@ -318,7 +322,8 @@ def setup(dp: Dispatcher):
     dp.register_message_handler(employee_search_result, is_admin=True, state=Exam.user_searching)
     dp.register_message_handler(get_trainee_calls, Text(equals="Звонки стажеров 📞"), chat_type=types.ChatType.PRIVATE,
                                 is_admin=True)
-    dp.register_callback_query_handler(get_calls_date, exam_callback.filter(action='phones'), is_admin=True, state=Exam.calls_searching)
+    dp.register_callback_query_handler(get_calls_date, exam_callback.filter(action='phones'), is_admin=True,
+                                       state=Exam.calls_searching)
     dp.register_callback_query_handler(calls_result, simple_cal_callback.filter(), is_admin=True,
                                        state=Exam.calls_searching)
     dp.register_callback_query_handler(route_trainees, mentor_callback.filter(), is_admin=True)

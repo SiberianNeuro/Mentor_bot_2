@@ -24,7 +24,7 @@ async def new_member(msg: types.Message):
     user_string = ""
     for new_member in msg.new_chat_members:
         chat_member = await msg.chat.get_member(new_member.id)
-        users.append(chat_member['user']['id'])
+        users.append(str(chat_member['user']['id']))
 
     users_info = await get_chat_members(users)
 
