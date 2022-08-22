@@ -12,7 +12,7 @@ class ACLMiddleware(BaseMiddleware):
         chat_id = chat.id if chat else user.id
         chat_type = chat.type if chat else "private"
 
-        user = False if await admin_check(user_id) is None else True
+        user = await admin_check(user_id)
 
         data["user"] = user
         # data["chat"] = chat

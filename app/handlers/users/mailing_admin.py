@@ -139,19 +139,20 @@ async def process_mailing(m: types.Message, state: FSMContext):
 # После подтверждения текстов и ролей забираем из БД все ID с соответствующими ролями, затем умножаем массив с
 # ссылками до длинны списка пользователей и рассылаем по порядку
 # @dp.callback_query_handler(mailing_callback.filter(action='execute'), state=Mailing.confirm_mailing)
-async def execute_mailing(c: types.CallbackQuery, state: FSMContext):
-    await c.answer()
-    await c.message.answer('Пристегните ремни, начинаем рассылку 😎')
+async def execute_mailing(call: types.CallbackQuery, state: FSMContext):
+    await call.answer()
     async with state.proxy() as data:
         text_list = data['text_list']
         user_list = await active_users(data['roles'])
+    await call.message.answer(f'Пристегните ремни, начинаем рассылку 😎. '
+                              f'Количество целевых пользователей - {len(user_list)}')
     counter = 0
     text_list = text_list * (len(user_list) // len(text_list)) + text_list[:(len(user_list) % len(text_list))]
-    logging.info(f'{text_list}')
-    logging.info(f'{user_list}')
+    # logging.info(f'{text_list}')
+    # logging.info(f'{user_list}')
     for i in range(len(user_list)):
         try:
-            await bot.send_message(chat_id=user_list[i][0],
+            await bot.send_message(chat_id=user_list[i]['chat_id'],
                                    text=f'Привет! Приготовил тебе <a href="{text_list[i]}">ссылку</a>'
                                         f'на тест ⚡\n\n'
                                         f'⏰ Длительность тестирования 30 минут, после чего форма '
@@ -160,16 +161,16 @@ async def execute_mailing(c: types.CallbackQuery, state: FSMContext):
                                         f'Удачи 🍀')
             counter += 1
         except ChatNotFound as e:
-            logging.exception(f"{user_list[i][1]}: {e}")
-            await c.message.answer(
-                f"{user_list[i][1]}: тест не получен. Пользователь отключил меня, либо не регистрировался.")
+            logging.exception(f"{user_list[i]['username']} {user_list[i]['chat_id']}: {e}")
+            await call.message.answer(
+                f"{user_list[i]['username']}: тест не получен. Пользователь отключил меня, либо не регистрировался.")
         except Unauthorized as e:
-            logging.exception(f"{user_list[i][1]}: {e}")
-            await c.message.answer(
-                f"{user_list[i][1]}: тест не получен. Пользователь отключил меня, либо не регистрировался.")
+            logging.exception(f"{user_list[i]['username']} {user_list[i]['chat_id']}: {e}")
+            await call.message.answer(
+                f"{user_list[i]['username']}: тест не получен. Пользователь отключил меня, либо не регистрировался.")
         finally:
             await asyncio.sleep(0.2)
-    await c.message.answer(f'Рассылка завершена, всего отправлено: {counter}')
+    await call.message.answer(f'Рассылка завершена, всего отправлено: {counter}')
     await state.finish()
 
 

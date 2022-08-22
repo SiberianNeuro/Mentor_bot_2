@@ -18,14 +18,17 @@ async def get_user_id(data: str) -> tuple:
     return result
 
 
-# Лист админских ИД
-async def admin_check(obj) -> tuple:
+# Проверяем пользователя на администратора
+async def admin_check(obj: Union[str, int]) -> bool:
     with mysql_connection() as conn:
         cur = conn.cursor()
         sql = "SELECT chat_id FROM admins WHERE chat_id = %s"
         cur.execute(sql, obj)
         result = cur.fetchone()
-    return result
+    if result is None:
+        return False
+    else:
+        return True
 
 
 # Добавить опрос в БД
@@ -101,7 +104,7 @@ async def deactivate_user(data: int):
 """Запросы к таблицам сотрудника"""
 
 
-async def is_register(obj) -> bool:
+async def is_register(obj: Union[str, int]) -> bool:
     with mysql_connection() as conn:
         cur = conn.cursor()
 
@@ -166,18 +169,18 @@ async def get_user_info(user: Union[str, int]) -> dict:
     return result
 
 
-async def active_users(data) -> tuple:
+async def active_users(data: list) -> list:
     with mysql_connection() as conn:
-        cur = conn.cursor()
+        cur = conn.cursor(cursor=pymysql.cursors.DictCursor)
         if len(data) != 1:
-            cur.execute(f"SELECT chat_id, username FROM staffs WHERE role_id IN {data}")
+            cur.execute(f'SELECT chat_id, username FROM staffs WHERE role_id IN {data} AND active = 1')
         else:
-            cur.execute(f'SELECT chat_id, username FROM staffs WHERE role_id = {data[0]}')
+            cur.execute(f'SELECT chat_id, username FROM staffs WHERE role_id = {data[0]} AND active = 1')
         result = cur.fetchall()
     return result
 
 
-async def get_current_roles(data) -> tuple:
+async def get_current_roles(data: tuple) -> tuple:
     with mysql_connection() as conn:
         cur = conn.cursor()
         if len(data) != 1:
@@ -188,7 +191,7 @@ async def get_current_roles(data) -> tuple:
     return result
 
 
-async def get_admin(admin_id) -> dict:
+async def get_admin(admin_id: int) -> dict:
     with mysql_connection() as conn:
         cur = conn.cursor(cursor=pymysql.cursors.DictCursor)
         get_info = "SELECT fullname, username, chat_id FROM admins " \
