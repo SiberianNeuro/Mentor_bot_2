@@ -1,5 +1,5 @@
 import asyncio
-import logging
+from loguru import logger
 
 from app.db.mysql_db import active_users, get_current_roles
 from loader import bot
@@ -69,7 +69,7 @@ async def more_workers(c: types.CallbackQuery, state: FSMContext, callback_data:
     await c.answer()
     async with state.proxy() as data:
         data['roles'].append(callback_data.get('c_data'))
-        logging.info(f'{data["roles"]}')
+        logger.info(f'{data["roles"]}')
     await c.message.answer(
         'Хорошо, должность принял, сотрудников нашел. Добавим еще одну, или переходим к ссылкам на тест?',
         reply_markup=await get_mailing_keyboard())
@@ -130,7 +130,7 @@ async def chose_mailing(c: types.CallbackQuery, state: FSMContext, callback_data
 async def process_mailing(m: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['text_list'].append(m.text)
-        logging.info(f'{data["text_list"]}')
+        logger.info(f'{data["text_list"]}')
     await m.answer("Супер, ссылку вижу. Добавляем еще, или переходим к рассылке?",
                    reply_markup=await get_mailing_keyboard())
     await Mailing.confirm_mailing.set()
@@ -160,12 +160,13 @@ async def execute_mailing(call: types.CallbackQuery, state: FSMContext):
                                         f'Не забудь свой гугл-аккаунт 📲\n\n'
                                         f'Удачи 🍀')
             counter += 1
+            logger.success(f"{user_list[i]['username']} {user_list[i]['chat_id']} successfully handled test link.")
         except ChatNotFound as e:
-            logging.exception(f"{user_list[i]['username']} {user_list[i]['chat_id']}: {e}")
+            logger.exception(f"{user_list[i]['username']} {user_list[i]['chat_id']}: {e}")
             await call.message.answer(
                 f"{user_list[i]['username']}: тест не получен. Пользователь отключил меня, либо не регистрировался.")
         except Unauthorized as e:
-            logging.exception(f"{user_list[i]['username']} {user_list[i]['chat_id']}: {e}")
+            logger.exception(f"{user_list[i]['username']} {user_list[i]['chat_id']}: {e}")
             await call.message.answer(
                 f"{user_list[i]['username']}: тест не получен. Пользователь отключил меня, либо не регистрировался.")
         finally:

@@ -240,6 +240,7 @@ async def calls_result(call: types.CallbackQuery, callback_data: dict, state: FS
             await call.message.answer(text=calls, reply_markup=await get_admin_kb())
             await call.answer()
             await call.message.delete()
+            logger.info(f'Requested calls for {phone_date.strftime("%Y-%m-%d")} by {call.from_user.username}')
             await state.finish()
         except AssertionError:
             await call.message.edit_text('Я не могу заглянуть в будущее 👻',

@@ -173,9 +173,9 @@ async def active_users(data: list) -> list:
     with mysql_connection() as conn:
         cur = conn.cursor(cursor=pymysql.cursors.DictCursor)
         if len(data) != 1:
-            cur.execute(f'SELECT chat_id, username FROM staffs WHERE role_id IN {data} AND active = 1')
+            cur.execute(f'SELECT chat_id, username FROM staffs WHERE role_id IN {data} AND active = 1 ORDER BY RAND()')
         else:
-            cur.execute(f'SELECT chat_id, username FROM staffs WHERE role_id = {data[0]} AND active = 1')
+            cur.execute(f'SELECT chat_id, username FROM staffs WHERE role_id = {data[0]} AND active = 1 ORDER BY RAND()')
         result = cur.fetchall()
     return result
 
