@@ -169,13 +169,12 @@ async def get_user_info(user: Union[str, int]) -> dict:
     return result
 
 
-async def active_users(data: tuple) -> list:
+async def active_users(data: tuple) -> dict:
     with mysql_connection() as conn:
         cur = conn.cursor(cursor=pymysql.cursors.DictCursor)
-        if len(data) != 1:
-            cur.execute(f'SELECT chat_id, username FROM staffs WHERE role_id IN {data} AND active = 1 ORDER BY RAND()')
-        else:
-            cur.execute(f'SELECT chat_id, username FROM staffs WHERE role_id = {data[0]} AND active = 1 ORDER BY RAND()')
+        cur.execute(f'SELECT chat_id, username FROM staffs '
+                    f'WHERE role_id IN {(*data, "None")} AND active = 1 '
+                    f'ORDER BY RAND()')
         result = cur.fetchall()
     return result
 
@@ -183,10 +182,7 @@ async def active_users(data: tuple) -> list:
 async def get_current_roles(data: tuple) -> tuple:
     with mysql_connection() as conn:
         cur = conn.cursor()
-        if len(data) != 1:
-            cur.execute(f"SELECT name FROM roles WHERE id IN {data}")
-        else:
-            cur.execute(f'SELECT name FROM roles WHERE id = {data[0]}')
+        cur.execute(f"SELECT name FROM roles WHERE id IN {(*data, 'None')}")
         result = cur.fetchall()
     return result
 
@@ -206,7 +202,7 @@ async def get_chat_members(ids: list) -> dict:
         cur = conn.cursor(cursor=pymysql.cursors.DictCursor)
         cur.execute(
             query=f"SELECT fullname, city FROM staffs "
-                  f"WHERE chat_id IN {(*ids, 'fake')}")
+                  f"WHERE chat_id IN {(*ids, 'None')}")
         result = cur.fetchall()
         return result
 
