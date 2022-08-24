@@ -10,7 +10,7 @@ from app.keyboards.other_kb import get_cancel_button
 
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
-from aiogram.utils.exceptions import ChatNotFound, Unauthorized
+from aiogram.utils.exceptions import ChatNotFound, Unauthorized, RetryAfter
 from aiogram.dispatcher.filters import Text
 
 """Стартовая команда и загрузка ролей"""
@@ -169,8 +169,9 @@ async def execute_mailing(call: types.CallbackQuery, state: FSMContext):
             logger.exception(f"{user_list[i]['username']} {user_list[i]['chat_id']}: {e}")
             await call.message.answer(
                 f"{user_list[i]['username']}: тест не получен. Пользователь отключил меня, либо не регистрировался.")
-        finally:
-            await asyncio.sleep(0.2)
+        except RetryAfter as e:
+            logger.error(f'Floodcontrol time - {e.timeout}')
+            await asyncio.sleep(e.timeout)
     await call.message.answer(f'Рассылка завершена, всего отправлено: {counter}')
     await state.finish()
 
