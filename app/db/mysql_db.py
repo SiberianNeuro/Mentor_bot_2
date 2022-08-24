@@ -169,7 +169,7 @@ async def get_user_info(user: Union[str, int]) -> dict:
     return result
 
 
-async def active_users(data: list) -> list:
+async def active_users(data: tuple) -> list:
     with mysql_connection() as conn:
         cur = conn.cursor(cursor=pymysql.cursors.DictCursor)
         if len(data) != 1:

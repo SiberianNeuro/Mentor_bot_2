@@ -143,7 +143,7 @@ async def execute_mailing(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
     async with state.proxy() as data:
         text_list = data['text_list']
-        user_list = await active_users(data['roles'])
+        user_list = await active_users(tuple(data['roles']))
     await call.message.answer(f'Пристегните ремни, начинаем рассылку 😎. '
                               f'Количество целевых пользователей - {len(user_list)}')
     counter = 0
