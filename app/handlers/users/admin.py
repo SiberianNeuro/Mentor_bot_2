@@ -167,9 +167,10 @@ async def change_active_callback(call: types.CallbackQuery, callback_data: dict)
     active = callback_data.get('active_now')
     user = await change_user_active_status(callback_data.get("user_id"), active)
     message_text = f'Пользователь {user["user_fullname"]} деактивирован' if active == '1' else f'Пользователь {user["user_fullname"]} активирован'
-    logger.warning(f'@{call.from_user.username} changed user {user["user_fullname"]} status to {active}')
+
     await call.answer(text=message_text, show_alert=True)
     new_user_info, user_id, new_active = await user_wrapper(user['user_info'])
+    logger.warning(f'@{call.from_user.username} changed user {user["user_fullname"]} status to {new_active}')
     await call.message.edit_text(text=new_user_info, reply_markup=await change_active_button(user_id, new_active))
 
 """Поиск"""
