@@ -139,7 +139,7 @@ async def user_wrapper(user_data: dict):
                  f'Контактный телефон: {user_info["phone"]}\n' \
                  f'e-mail: {user_info["email"]}'
     elif user_info["role_id"] in (5, 6, 7, 8):
-        string = f'<b>{user_info["fullname"]}</b> {user_info["username"]}\n<u>{user_info["active"]}</u>\n\n' \
+        string = f'<b>{user_info["fullname"]}</b> {user_info["username"]}\n<u>{active}</u>\n\n' \
                  f'Должность: {user_info["name"]}\n' \
                  f'Город: {user_info["city"]}\n' \
                  f'Ординатура: {user_info["stage"]}\n' \
