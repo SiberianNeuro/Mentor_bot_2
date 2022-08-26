@@ -104,7 +104,7 @@ async def delete_exam(data: Union[str, int]):
         conn.commit()
 
 
-async def change_user_active_status(user_id: Union[str, int], active: Union[str, int]) -> dict[str, Any]:
+async def change_user_active_status(user_id: Union[str, int], active: Union[str, int]) -> dict:
     with mysql_connection() as conn:
         cur = conn.cursor(cursor=pymysql.cursors.DictCursor)
         if active == '1':
