@@ -63,10 +63,13 @@ async def get_delete_button(id: int) -> InlineKeyboardMarkup:
     delete_keyboard.add(button)
     return delete_keyboard
 
+active_callback = CallbackData('change_active', 'active_action', 'user_id', 'active_now')
 
-async def get_deactivate_button(id: int) -> InlineKeyboardMarkup:
+
+async def change_active_button(id: int, active: int) -> InlineKeyboardMarkup:
     button = InlineKeyboardButton(
-        text='Деактивировать ❌', callback_data=exam_callback.new(action='deactivate', action_data=id)
+        text='Деактивировать ❌' if active == 1 else 'Активировать ✅',
+        callback_data=active_callback.new(active_action='change', user_id=id, active_now=active)
     )
     deactivate_keyboard = InlineKeyboardMarkup(row_width=1)
     deactivate_keyboard.add(button)

@@ -1,6 +1,6 @@
 import pymysql.cursors
 from loguru import logger
-from typing import Union
+from typing import Union, Any
 
 from app.models.database import mysql_connection
 
@@ -22,7 +22,7 @@ async def get_user_id(data: str) -> tuple:
 async def admin_check(obj: Union[str, int]) -> bool:
     with mysql_connection() as conn:
         cur = conn.cursor()
-        sql = "SELECT chat_id FROM admins WHERE chat_id = %s"
+        sql = "SELECT chat_id FROM admins WHERE chat_id = %s AND active = 1"
         cur.execute(sql, obj)
         result = cur.fetchone()
     if result is None:
@@ -42,12 +42,25 @@ async def exam_processing(data: dict) -> tuple:
         cur.execute(insert_exam, tuple(data.values()))
         conn.commit()
 
-        if data['result_id'] == 3 and data['stage_id'] in (3, 4, 5):
-            raise_user = "UPDATE staffs " \
-                         "SET role_id = IF(role_id IN (7, 8), role_id -1, IF(role_id = 9, role_id + 1, role_id)) " \
-                         "WHERE id = %s"
-            cur.execute(raise_user, data['user_id'])
-            conn.commit()
+        if data['result_id'] == 3:
+            if data['stage_id'] == 3:
+                raise_user = "UPDATE staffs " \
+                             "SET role_id = IF(role_id = 8, 7, role_id)) " \
+                             "WHERE id = %s"
+                cur.execute(raise_user, data['user_id'])
+                conn.commit()
+            if data['stage_id'] == 4:
+                raise_user = "UPDATE staffs " \
+                             "SET role_id = IF(role_id = 7, 6, role_id)) " \
+                             "WHERE id = %s"
+                cur.execute(raise_user, data['user_id'])
+                conn.commit()
+            if data['stage_id'] == 5:
+                raise_user = "UPDATE staffs " \
+                             "SET role_id = IF(role_id = 9, 10, role_id)) " \
+                             "WHERE id = %s"
+                cur.execute(raise_user, data['user_id'])
+                conn.commit()
 
             user_info = "SELECT s.fullname, s.username, r.name FROM staffs s " \
                         "JOIN roles r on s.role_id = r.id " \
@@ -83,21 +96,35 @@ async def db_search_exam(data: str) -> tuple:
 
 
 # Удалить запись об опросе
-async def delete_exam(data: int):
+async def delete_exam(data: Union[str, int]):
     with mysql_connection() as conn:
         cur = conn.cursor()
         sql = "DELETE FROM exams WHERE id = %s"
-        cur.execute(sql, (data,))
+        cur.execute(sql, data)
         conn.commit()
 
 
-async def deactivate_user(data: int):
+async def change_user_active_status(user_id: Union[str, int], active: Union[str, int]) -> dict[str, Any]:
     with mysql_connection() as conn:
-        cur = conn.cursor()
-        cur.execute(f"UPDATE staffs SET active = IF(id = {data}, 0, active)")
-        conn.commit()
-        cur.execute(f"SELECT username FROM staffs WHERE id = {data}")
-        result = cur.fetchone()
+        cur = conn.cursor(cursor=pymysql.cursors.DictCursor)
+        if active == '1':
+            cur.execute(f"UPDATE staffs SET active = 0 WHERE id = {user_id}")
+            conn.commit()
+        elif active == '0':
+            cur.execute(f"UPDATE staffs SET active = 1 WHERE id = {user_id}")
+            conn.commit()
+        cur.execute(
+            query="SELECT s.id, fullname, username, r.name, city, t.stage, profession, start_year, end_year, "
+                  "phone, email, s.role_id, s.active AS active FROM staffs s "
+                  "JOIN traineeships t on t.id = s.traineeship_id "
+                  "JOIN roles r on r.id = s.role_id "
+                  "WHERE s.id = %s",
+            args=user_id
+        )
+        user_info = cur.fetchone()
+        cur.execute(f'SELECT username FROM staffs WHERE id = {user_id}')
+        user_fullname = cur.fetchone()
+        result = {'user_info': user_info, 'user_fullname': user_fullname['username']}
         return result
 
 
@@ -148,18 +175,17 @@ async def get_user_info(user: Union[str, int]) -> dict:
         if type(user) is str:
             cur.execute(
                 query="SELECT s.id, fullname, username, r.name, city, t.stage, profession, start_year, end_year, "
-                      "phone, email, s.role_id, IF(active = 1, 'Активирован', 'Деактивирован') AS active FROM staffs s "
+                      "phone, email, s.role_id, s.active AS active FROM staffs s "
                       "JOIN traineeships t on t.id = s.traineeship_id "
                       "JOIN roles r on r.id = s.role_id "
                       "WHERE fullname LIKE %s",
                 args=('%' + user.title() + '%',)
             )
             result = cur.fetchall()
-            print(result)
         elif type(user) is int:
             cur.execute(
                 query="SELECT s.id, fullname, username, r.name, city, t.stage, profession, start_year, end_year, "
-                      "phone, email, s.role_id, IF(active = 1, 'Активирован', 'Деактивирован') AS active FROM staffs s "
+                      "phone, email, s.role_id, s.active AS active FROM staffs s "
                       "JOIN traineeships t on t.id = s.traineeship_id "
                       "JOIN roles r on r.id = s.role_id "
                       "WHERE chat_id = %s AND active = 1",

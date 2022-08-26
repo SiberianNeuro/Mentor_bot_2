@@ -5,6 +5,7 @@ import random
 from aiogram.dispatcher import FSMContext
 from aiogram import types, Dispatcher
 from aiogram.dispatcher.filters import Text, CommandStart
+from aiogram.dispatcher.handler import ctx_data
 
 from app.keyboards.other_kb import *
 from app.keyboards.admin_kb import get_mentors_keyboard
@@ -24,7 +25,8 @@ async def commands_start(msg: types.Message, state: FSMContext):
     await msg.delete()
     await msg.answer_sticker('CAACAgIAAxkBAAIE4GKSGruXCE8S-gM_iIJyaTbM9TGYAAJPAAOtZbwUa5EcjYesr5MkBA')
     await msg.answer('Привет ✌\n\nЯ помощник в медицинском отделе ДОК 🤖')
-    if await is_register(msg.from_user.id):
+    data = ctx_data.get()
+    if data['is_register']:
         await msg.answer('Вижу, что ты уже зарегистрирован 🤠\n\nЧем могу помочь?',
                          reply_markup=types.ReplyKeyboardRemove())
     else:
@@ -200,7 +202,7 @@ async def finish_register(msg: types.Message, state: FSMContext):
         if user['role'] not in (8, 9):
             await state.finish()
             return
-        new_trainee, trainee_id = await user_wrapper(user_info)
+        new_trainee, trainee_id, active = await user_wrapper(user_info)
         await msg.bot.send_message(
             chat_id=config.misc.router_chat, text=f'Новый стажер прошел регистрацию:\n\n{new_trainee}\n\nКому '
                                                   f'распределяем?',

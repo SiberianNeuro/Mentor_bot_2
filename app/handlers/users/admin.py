@@ -5,7 +5,7 @@ from aiogram_calendar import SimpleCalendar, simple_cal_callback
 
 from loguru import logger
 
-from app.db.mysql_db import exam_processing, db_search_exam, delete_exam, get_user_info, get_admin, deactivate_user
+from app.db.mysql_db import exam_processing, db_search_exam, delete_exam, get_user_info, get_admin, change_user_active_status
 from app.utils.misc.sheets_append import add_user_array
 from app.utils.misc.wrappers import report_wrapper, search_wrapper, user_wrapper
 from app.utils.states import Exam
@@ -156,17 +156,21 @@ async def load_link(msg: types.Message, state: FSMContext):
 
 # Команда на удаление опроса
 # @dp.callback_query_handler(IsAdmin(), exam_callback.filter(action='delete'))
-async def del_callback_run(call: types.CallbackQuery, callback_data: dict):
+async def delete_exam_callback(call: types.CallbackQuery, callback_data: dict):
     await delete_exam(callback_data.get("action_data"))
     logger.warning(f'@{call.from_user.username} delete exam.')
     await call.answer(text='Информация удалена', show_alert=True)
     await call.message.delete()
 
 
-async def deactivate_callback(call: types.CallbackQuery, callback_data: dict):
-    user = await deactivate_user(callback_data.get("action_data"))
-    logger.warning(f'@{call.from_user.username} deactivate user {user[0]}')
-    await call.answer(text=f'Пользователь {user[0]} деактивирован', show_alert=True)
+async def change_active_callback(call: types.CallbackQuery, callback_data: dict):
+    active = callback_data.get('active_now')
+    user = await change_user_active_status(callback_data.get("user_id"), active)
+    message_text = f'Пользователь {user["user_fullname"]} деактивирован' if active == '1' else f'Пользователь {user["user_fullname"]} активирован'
+    logger.warning(f'@{call.from_user.username} changed user {user["user_fullname"]} status to {active}')
+    await call.answer(text=message_text, show_alert=True)
+    new_user_info, user_id, new_active = await user_wrapper(user['user_info'])
+    await call.message.edit_text(text=new_user_info, reply_markup=await change_active_button(user_id, new_active))
 
 """Поиск"""
 
@@ -206,7 +210,7 @@ async def employee_search_result(msg: types.Message, state: FSMContext):
     else:
         for user in result:
             user_data = await user_wrapper(user)
-            await msg.answer(f'{user_data[0]}', reply_markup=await get_deactivate_button(user_data[1]))
+            await msg.answer(f'{user_data[0]}', reply_markup=await change_active_button(user_data[1], user_data[2]))
         await msg.answer('Готово!👌', reply_markup=await get_admin_kb())
     await state.finish()
 
@@ -313,8 +317,8 @@ def setup(dp: Dispatcher):
                                        is_admin=True)
     dp.register_message_handler(load_calls, state=Exam.calls, is_admin=True)
     dp.register_message_handler(load_link, is_admin=True, state=Exam.link)
-    dp.register_callback_query_handler(del_callback_run, exam_callback.filter(action='delete'), is_admin=True)
-    dp.register_callback_query_handler(deactivate_callback, exam_callback.filter(action='deactivate'), is_admin=True)
+    dp.register_callback_query_handler(delete_exam_callback, exam_callback.filter(action='delete'), is_admin=True)
+    dp.register_callback_query_handler(change_active_callback, active_callback.filter(active_action='change'), is_admin=True)
     dp.register_message_handler(exam_search_start, Text(equals='Найти опрос 👀'), is_admin=True,
                                 chat_type=types.ChatType.PRIVATE)
     dp.register_message_handler(exam_search_result, is_admin=True, state=Exam.exam_searching)

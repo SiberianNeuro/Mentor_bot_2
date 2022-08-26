@@ -129,9 +129,10 @@ async def user_wrapper(user_data: dict):
     """
     user_info = user_data
     user_id = user_info['id']
+    active = 'Активирован' if user_info['active'] == 1 else 'Деактивирован'
     string = ''
     if user_info["role_id"] in (9, 10, 11):
-        string = f'<b>{user_info["fullname"]}</b> {user_info["username"]}\n<u>{user_info["active"]}</u>\n\n' \
+        string = f'<b>{user_info["fullname"]}</b> {user_info["username"]}\n<u>{active}</u>\n\n' \
                  f'Должность: {user_info["name"]}\n' \
                  f'Город: {user_info["city"]}\n' \
                  f'Мед. образование: {user_info["stage"]}\n\n' \
@@ -147,4 +148,4 @@ async def user_wrapper(user_data: dict):
                  f'Год выпуска: {user_info["end_year"]}\n\n' \
                  f'Контактный телефон: {user_info["phone"]}\n' \
                  f'e-mail: {user_info["email"]}'
-    return string, user_id
+    return string, user_id, user_info['active']
