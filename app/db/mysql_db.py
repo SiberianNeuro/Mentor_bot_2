@@ -45,19 +45,19 @@ async def exam_processing(data: dict) -> tuple:
         if data['result_id'] == 3:
             if data['stage_id'] == 3:
                 raise_user = "UPDATE staffs " \
-                             "SET role_id = IF(role_id = 8, 7, role_id)) " \
+                             "SET role_id = IF(role_id = 8, 7, role_id) " \
                              "WHERE id = %s"
                 cur.execute(raise_user, data.get('user_id'))
                 conn.commit()
             if data['stage_id'] == 4:
                 raise_user = "UPDATE staffs " \
-                             "SET role_id = IF(role_id = 7, 6, role_id)) " \
+                             "SET role_id = IF(role_id = 7, 6, role_id) " \
                              "WHERE id = %s"
                 cur.execute(raise_user, data.get('user_id'))
                 conn.commit()
             if data['stage_id'] == 5:
                 raise_user = "UPDATE staffs " \
-                             "SET role_id = IF(role_id = 9, 10, role_id)) " \
+                             "SET role_id = IF(role_id = 9, 10, role_id) " \
                              "WHERE id = %s"
                 cur.execute(raise_user, data.get('user_id'))
                 conn.commit()
