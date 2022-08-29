@@ -75,7 +75,7 @@ async def exam_processing(data: dict) -> tuple:
                     'JOIN staffs s ON ex.user_id = s.id '
                     'JOIN stages st ON ex.stage_id = st.id '
                     'JOIN results r ON ex.result_id = r.id '
-                    'WHERE document_id = %s', data.get('user_id'))
+                    'WHERE document_id = %s', data.get('document'))
         result = cur.fetchone()
         return result
 
