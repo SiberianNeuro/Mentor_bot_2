@@ -33,6 +33,8 @@ async def admin_check(obj: Union[str, int]) -> bool:
 
 # Добавить опрос в БД
 async def exam_processing(data: dict) -> tuple:
+    employee = data
+    logger.info(employee)
     with mysql_connection() as conn:
         cur = conn.cursor()
         insert_exam = "INSERT INTO exams (document_id, " \
@@ -44,28 +46,33 @@ async def exam_processing(data: dict) -> tuple:
 
         if data['result_id'] == 3:
             if data['stage_id'] == 3:
+                logger.info(data['stage_id'], employee['user_id'])
                 raise_user = "UPDATE staffs " \
                              "SET role_id = IF(role_id = 8, 7, role_id)) " \
                              "WHERE id = %s"
-                cur.execute(raise_user, data['user_id'])
+                cur.execute(raise_user, employee['user_id'])
                 conn.commit()
             if data['stage_id'] == 4:
+                logger.info(data['stage_id'], employee['user_id'])
+
                 raise_user = "UPDATE staffs " \
                              "SET role_id = IF(role_id = 7, 6, role_id)) " \
                              "WHERE id = %s"
-                cur.execute(raise_user, data['user_id'])
+                cur.execute(raise_user, employee['user_id'])
                 conn.commit()
             if data['stage_id'] == 5:
+                logger.info(data['stage_id'], employee['user_id'])
+
                 raise_user = "UPDATE staffs " \
                              "SET role_id = IF(role_id = 9, 10, role_id)) " \
                              "WHERE id = %s"
-                cur.execute(raise_user, data['user_id'])
+                cur.execute(raise_user, employee['user_id'])
                 conn.commit()
 
             user_info = "SELECT s.fullname, s.username, r.name FROM staffs s " \
                         "JOIN roles r on s.role_id = r.id " \
                         "WHERE s.id = %s"
-            cur.execute(user_info, data['user_id'])
+            cur.execute(user_info, employee['user_id'])
             user = cur.fetchone()
             logger.success(f'{user[0]} {user[1]} повышен(-а) до должности {user[2]}.')
 
@@ -75,7 +82,7 @@ async def exam_processing(data: dict) -> tuple:
                     'JOIN staffs s ON ex.user_id = s.id '
                     'JOIN stages st ON ex.stage_id = st.id '
                     'JOIN results r ON ex.result_id = r.id '
-                    'WHERE document_id = %s', data['document'])
+                    'WHERE document_id = %s', employee['document'])
         result = cur.fetchone()
         return result
 
