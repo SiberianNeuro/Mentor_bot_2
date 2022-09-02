@@ -10,9 +10,9 @@ from aiogram.dispatcher.handler import ctx_data
 from app.keyboards.other_kb import *
 from app.keyboards.admin_kb import get_mentors_keyboard
 from app.utils.misc.wrappers import user_wrapper
-from app.utils.states import FSMRegister
+from app.models.states import Register
 
-from app.db.mysql_db import is_register, user_db_roundtrip, get_admin
+from app.db.mysql_db import is_register, user_db_roundtrip
 
 from app.models.simple_answers import answers
 
@@ -43,7 +43,7 @@ async def start_register(call: types.CallbackQuery):
         logger.debug(f"{call.from_user.username} - попытка повторной регистрации")
     else:
         await call.answer()
-        await FSMRegister.name.set()
+        await Register.name.set()
         await call.message.answer('Давай знакомиться✌️\n\n'
                                   'Если вдруг передумаешь регистрироваться, либо что-то напишешь не так,'
                                   ' жми кнопку <b>"Отмена"</b>,'
@@ -69,7 +69,7 @@ async def cancel_handler(msg: types.Message, state: FSMContext):
 async def get_fullname(msg: types.Message, state: FSMContext):
     first_name = msg.text.split()[1]
     await state.update_data(name=msg.text.title())
-    await FSMRegister.city.set()
+    await Register.city.set()
     await msg.answer(f'Приятно познакомиться, {first_name}!\n\nТеперь напиши город, в котором ты работаешь 🏙\n'
                      f'<i>Например: Новосибирск, Санкт-Петербург, Екатеринбург</i>')
 
@@ -78,7 +78,7 @@ async def get_fullname(msg: types.Message, state: FSMContext):
 async def get_city(msg: types.Message, state: FSMContext):
     city = msg.text.title()
     await state.update_data(city=city)
-    await FSMRegister.role.set()
+    await Register.role.set()
     await msg.answer('Замечательно 🤟\nТеперь выбери свою должность:\n\n'
                      '<b>Врач-стажер:</b> ты только что трудоустроился в "ПризываНет" на ставку врача и еще проходишь '
                      'обучение\n\n '
@@ -100,7 +100,7 @@ async def get_role(call: types.CallbackQuery, state: FSMContext, callback_data: 
     role = int(callback_data.get('stage_data'))
     await state.update_data(role=role)
     if role in (5, 6, 7, 8):
-        await FSMRegister.traineeship.set()
+        await Register.traineeship.set()
         await call.message.answer('Отлично, с этим определились. Тогда расскажи немного про ординатуру:\n'
                                   'Выбери один из нескольких вариантов ответа:\n\n'
                                   '<b>Не поступал и не собираюсь:</b> ты не был в ординатуре и не хочешь туда\n\n'
@@ -111,7 +111,7 @@ async def get_role(call: types.CallbackQuery, state: FSMContext, callback_data: 
                                   reply_markup=await get_spec_keyboard())
         await call.message.delete()
     if role in (9, 10, 11):
-        await FSMRegister.med_education.set()
+        await Register.med_education.set()
         await call.message.answer(
             'Отлично, с этим определились. Скажи, пожалуйста, есть ли у тебя медицинское образование?',
             reply_markup=await get_education_keyboard())
@@ -127,7 +127,7 @@ async def get_education(call: types.CallbackQuery, state: FSMContext, callback_d
         start_year=None,
         end_year=None
     )
-    await FSMRegister.phone.set()
+    await Register.phone.set()
     await call.message.answer('Записал 👌\n\nТеперь пробежимся по формальностям:\nВведи своей номер телефона 📱')
     await call.message.delete()
 
@@ -137,7 +137,7 @@ async def get_traineeship(call: types.CallbackQuery, state: FSMContext, callback
     if int(callback_data.get('stage_data')) in (2, 3, 4):
         await call.answer()
         await state.update_data(traineeship=int(callback_data.get('stage_data')))
-        await FSMRegister.profession.set()
+        await Register.profession.set()
         await call.message.answer('Хорошо, а специальность известна?\n<i>Например, ЛОР или неврология</i>')
         await call.message.delete()
     elif int(callback_data.get('stage_data')) == 1:
@@ -149,21 +149,21 @@ async def get_traineeship(call: types.CallbackQuery, state: FSMContext, callback
             end_year=None,
         )
         await call.message.answer('Записал 👌\n\nТеперь пробежимся по формальностям:\nВведи своей номер телефона 📱')
-        await FSMRegister.phone.set()
+        await Register.phone.set()
         await call.message.delete()
 
 
 # @dp.message_handler(state=FSMRegister.profession)
 async def get_profession(msg: types.Message, state: FSMContext):
     await state.update_data(profession=msg.text)
-    await FSMRegister.start_year.set()
+    await Register.start_year.set()
     await msg.answer('Отличный выбор 😎\n\nНапиши, пожалуйста, год поступления')
 
 
 # @dp.message_handler(state=FSMRegister.start_year)
 async def get_start_year(msg: types.Message, state: FSMContext):
     await state.update_data(start_year=msg.text)
-    await FSMRegister.end_year.set()
+    await Register.end_year.set()
     await msg.answer('Супер, теперь год окончания')
 
 
@@ -171,20 +171,20 @@ async def get_start_year(msg: types.Message, state: FSMContext):
 async def get_end_year(msg: types.Message, state: FSMContext):
     await state.update_data(end_year=msg.text)
     await msg.answer('Записал 👌\n\nТеперь пробежимся по формальностям:\nВведи своей номер телефона 📱')
-    await FSMRegister.phone.set()
+    await Register.phone.set()
 
 
 # @dp.message_handler(state=FSMRegister.phone)
 async def get_phone_number(msg: types.Message, state: FSMContext):
     await state.update_data(phone=msg.text)
-    await FSMRegister.email.set()
+    await Register.email.set()
     await msg.answer('Принял, теперь напиши свою гугл-почту 📧\n(заканчивается на @gmail.com)')
 
 
 # @dp.message_handler(state=FSMRegister.email)
 async def get_email(msg: types.Message, state: FSMContext):
     await state.update_data(email=msg.text)
-    await FSMRegister.birthdate.set()
+    await Register.birthdate.set()
     await msg.answer('Огонь, осталось только написать дату рождения в формате <i>ДД.ММ.ГГГГ</i>')
 
 
@@ -227,17 +227,17 @@ def setup(dp: Dispatcher):
                                        chat_type=types.ChatType.PRIVATE)
     dp.register_message_handler(cancel_handler, state='*', commands='отмена')
     dp.register_message_handler(cancel_handler, Text(equals='отмена', ignore_case=True), state='*')
-    dp.register_message_handler(get_fullname, state=FSMRegister.name)
-    dp.register_message_handler(get_city, state=FSMRegister.city)
-    dp.register_callback_query_handler(get_role, register_callback.filter(stage='position'), state=FSMRegister.role)
+    dp.register_message_handler(get_fullname, state=Register.name)
+    dp.register_message_handler(get_city, state=Register.city)
+    dp.register_callback_query_handler(get_role, register_callback.filter(stage='position'), state=Register.role)
     dp.register_callback_query_handler(get_education, register_callback.filter(stage='education'),
-                                       state=FSMRegister.med_education)
+                                       state=Register.med_education)
     dp.register_callback_query_handler(get_traineeship, register_callback.filter(stage='spec'),
-                                       state=FSMRegister.traineeship)
-    dp.register_message_handler(get_profession, state=FSMRegister.profession)
-    dp.register_message_handler(get_start_year, state=FSMRegister.start_year)
-    dp.register_message_handler(get_end_year, state=FSMRegister.end_year)
-    dp.register_message_handler(get_phone_number, state=FSMRegister.phone)
-    dp.register_message_handler(get_email, state=FSMRegister.email)
-    dp.register_message_handler(finish_register, state=FSMRegister.birthdate)
+                                       state=Register.traineeship)
+    dp.register_message_handler(get_profession, state=Register.profession)
+    dp.register_message_handler(get_start_year, state=Register.start_year)
+    dp.register_message_handler(get_end_year, state=Register.end_year)
+    dp.register_message_handler(get_phone_number, state=Register.phone)
+    dp.register_message_handler(get_email, state=Register.email)
+    dp.register_message_handler(finish_register, state=Register.birthdate)
     dp.register_message_handler(echo, chat_type=types.ChatType.PRIVATE)

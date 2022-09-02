@@ -3,7 +3,7 @@ from loguru import logger
 
 from app.db.mysql_db import active_users, get_current_roles
 from loader import bot
-from app.utils.states import Mailing
+from app.models.states import Mailing
 from app.keyboards.admin_kb import get_mailing_keyboard, mailing_callback, get_execute_button, \
     get_roles_keyboard, text_switch_button
 from app.keyboards.other_kb import get_cancel_button

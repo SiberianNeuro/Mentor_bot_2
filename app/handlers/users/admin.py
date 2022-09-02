@@ -5,12 +5,13 @@ from aiogram_calendar import SimpleCalendar, simple_cal_callback
 
 from loguru import logger
 
-from app.db.mysql_db import exam_processing, db_search_exam, delete_exam, get_user_info, get_admin, change_user_active_status
+from app.db.mysql_db import exam_processing, db_search_exam, delete_exam, get_user_info, get_admin, \
+    change_user_active_status
 from app.utils.misc.sheets_append import add_user_array
 from app.utils.misc.wrappers import report_wrapper, search_wrapper, user_wrapper
-from app.utils.states import Exam
+from app.models.states import Exam
 from app.utils.misc.file_parsing import file_parser
-from app.utils.misc.get_trainee_calls import get_calls
+from app.services.get_trainee_calls import get_calls
 from app.keyboards.other_kb import get_cancel_button
 from app.keyboards.admin_kb import *
 from app.services.config import load_config
@@ -166,7 +167,8 @@ async def delete_exam_callback(call: types.CallbackQuery, callback_data: dict):
 async def change_active_callback(call: types.CallbackQuery, callback_data: dict):
     active = callback_data.get('active_now')
     user = await change_user_active_status(callback_data.get("user_id"), active)
-    message_text = f'Пользователь {user["user_fullname"]} деактивирован' if active == '1' else f'Пользователь {user["user_fullname"]} активирован'
+    message_text = f'Пользователь {user["user_fullname"]} '
+    message_text += 'деактивирован' if active == '1' else 'активирован'
 
     await call.answer(text=message_text, show_alert=True)
     new_user_info, user_id, new_active = await user_wrapper(user['user_info'])
@@ -283,7 +285,7 @@ async def route_trainees(call: types.CallbackQuery, callback_data: dict):
                                        f'Эта ссылка приведет тебя в группу, где общаются все стажеры - и опытные, '
                                        f'и новички 😉\n\n '
                                        f'<b>{l3_chat["invite_link"]}</b>\n'
-                                       f'А по этой ссылке ты попадешь в чат своей учебной группы 👩‍🎓\n'
+                                       f'По этой ссылке ты попадешь в чат своей учебной группы 👩‍🎓\n'
                                        f'Твой наставник, {mentor_name} {mentor_username}, будет на связи с тобой '
                                        f'всегда и по любым вопросам 🤩\n'
                                        f'Обязательно нажми на каждую ссылку, чтобы попасть чат 😇'

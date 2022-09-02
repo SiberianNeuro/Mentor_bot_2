@@ -13,3 +13,7 @@ def mysql_connection():
                 charset="utf8mb4",
             )
     return conn
+
+
+conn = mysql_connection()
+cur = conn.cursor()

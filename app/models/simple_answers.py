@@ -1,8 +1,8 @@
 import json
-import os
+from pathlib import Path
 
 def get_answers():
-    path = os.path.join(os.getcwd(), 'answers.json')
+    path = Path(Path(__file__).parent, 'answers.json')
     with open(path, 'r') as ans_file:
         answers = json.load(ans_file)
     return answers

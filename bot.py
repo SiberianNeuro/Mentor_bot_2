@@ -24,7 +24,8 @@ async def on_startup(dp):
     error_handler.setup(dp)
 
 if __name__ == '__main__':
-    from app.utils.misc import logging
+    from app.utils import logging
+
     logging.setup()
 
     executor.start_polling(dp, skip_updates=True, on_startup=on_startup)

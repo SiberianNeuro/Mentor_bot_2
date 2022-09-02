@@ -13,7 +13,7 @@ class Exam(StatesGroup):
 
 
 # Состояния для регистрации пользователя
-class FSMRegister(StatesGroup):
+class Register(StatesGroup):
     name = State()
     city = State()
     role = State()

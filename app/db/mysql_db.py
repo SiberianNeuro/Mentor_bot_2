@@ -3,6 +3,7 @@ from loguru import logger
 from typing import Union, Any
 
 from app.models.database import mysql_connection
+from app.models.database import conn, cur
 
 
 """Запросы от администратора"""
@@ -10,11 +11,9 @@ from app.models.database import mysql_connection
 
 # Вытащить айдишник юзера
 async def get_user_id(data: str) -> tuple:
-    with mysql_connection() as conn:
-        cur = conn.cursor()
-        sql = "SELECT id FROM staffs WHERE fullname = %s"
-        cur.execute(sql, (data,))
-        result = cur.fetchone()
+    sql = "SELECT id FROM staffs WHERE fullname = %s"
+    cur.execute(sql, (data,))
+    result = cur.fetchone()
     return result
 
 
@@ -34,7 +33,7 @@ async def admin_check(obj: Union[str, int]) -> bool:
 # Добавить опрос в БД
 async def exam_processing(data: dict) -> tuple:
     with mysql_connection() as conn:
-        cur = conn.cursor()
+        cur = conn.cursor(cursor=pymysql.cursors.DictCursor)
         insert_exam = "INSERT INTO exams (document_id, " \
                       "user_id, stage_id, result_id, " \
                       "score, date, retake_date, calls, link) " \
@@ -67,10 +66,10 @@ async def exam_processing(data: dict) -> tuple:
                         "WHERE s.id = %s"
             cur.execute(user_info, data.get('user_id'))
             user = cur.fetchone()
-            logger.success(f'{user[0]} {user[1]} повышен(-а) до должности {user[2]}.')
+            logger.success(f'{user["fullname"]} {user["username"]} повышен(-а) до должности {user["name"]}.')
 
-        cur.execute('SELECT ex.id, ex.document_id, s.fullname, st.stage, r.result, '
-                    'ex.score, ex.link, ex.calls, DATE_FORMAT(ex.retake_date, "%%d.%%m.%%Y") '
+        cur.execute('SELECT ex.stage_id, ex.result_id, ex.id, ex.document_id, s.fullname, st.stage, r.result, '
+                    'ex.score, ex.link, ex.calls, DATE_FORMAT(ex.retake_date, "%%d.%%m.%%Y") AS retake_date '
                     'FROM exams ex '
                     'JOIN staffs s ON ex.user_id = s.id '
                     'JOIN stages st ON ex.stage_id = st.id '
@@ -85,7 +84,7 @@ async def db_search_exam(data: str) -> tuple:
     with mysql_connection() as conn:
         cur = conn.cursor()
         cur.execute('SELECT ex.id, ex.document_id, s.fullname, st.stage, r.result, '
-                    'ex.score, ex.link, ex.calls, DATE_FORMAT(ex.retake_date, "%%d.%%m.%%Y") '
+                    'ex.score, ex.link, ex.calls, DATE_FORMAT(ex.retake_date, "%%d.%%m.%%Y") AS retake_date '
                     'FROM exams ex '
                     'JOIN staffs s ON ex.user_id = s.id '
                     'JOIN stages st ON ex.stage_id = st.id '
