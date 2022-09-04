@@ -9,7 +9,7 @@ from aiogram.dispatcher.handler import ctx_data
 
 from app.keyboards.other_kb import *
 from app.keyboards.admin_kb import get_mentors_keyboard
-from app.utils.misc.wrappers import user_wrapper
+from app.utils.misc.wrappers import Wrappers
 from app.models.states import Register
 
 from app.db.mysql_db import is_register, user_db_roundtrip
@@ -202,9 +202,9 @@ async def finish_register(msg: types.Message, state: FSMContext):
         if user['role'] not in (8, 9):
             await state.finish()
             return
-        new_trainee, trainee_id, active = await user_wrapper(user_info)
+        user_info = await Wrappers.user_wrapper(user_info)
         await msg.bot.send_message(
-            chat_id=config.misc.router_chat, text=f'Новый стажер прошел регистрацию:\n\n{new_trainee}\n\nКому '
+            chat_id=config.misc.router_chat, text=f'Новый стажер прошел регистрацию:\n\n{user_info["wrapper"]}\n\nКому '
                                                   f'распределяем?',
             reply_markup=await get_mentors_keyboard(msg.from_user.id)
         )

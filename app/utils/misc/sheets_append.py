@@ -1,17 +1,15 @@
 from loguru import logger
 
-from app.models.google_api import google_api
+from app.models.google_api import GoogleSheetsApi
 
 from datetime import date, timedelta
 
 from app.services.config import load_config
 
-
 config = load_config('.env')
 
 
 async def add_user_array(user_info: dict, mentor_name: str):
-
     fullname, username = user_info['fullname'], user_info['username']
     city, stage = user_info['city'], user_info['stage']
     profession = f'Специальность: {user_info["profession"]}\n' \
@@ -21,10 +19,10 @@ async def add_user_array(user_info: dict, mentor_name: str):
 
     mentor_fullname = mentor_name.split(' ')
     mentor_shortname = f'{mentor_fullname[0]} {mentor_fullname[1][0]}.{mentor_fullname[2][0]}.'
-    service = google_api()
+    api = GoogleSheetsApi(spreadsheet_id=config.misc.mentor_table,
+                          spreadsheet_range="'Стажировка 2.0'!A3:L3"
+                          if role_id == 8 else "'Обучение 1-ая линия 2.0'!A3:H3")
 
-    spreadsheet_id = config.misc.mentor_table
-    range = "'Стажировка 2.0'!A3:L3" if role_id == 8 else "'Обучение 1-ая линия 2.0'!A3:H3"
     workday_duration = "10:30-17:00" if stage == "Учится сейчас" else "08:30-17:00"
     delta = (date.today() + timedelta(days=30)) if role_id == 8 else (date.today() + timedelta(days=15))
 
@@ -45,17 +43,4 @@ async def add_user_array(user_info: dict, mentor_name: str):
         fullname, username, phone, email, city, stage, date.today().strftime('%d.%m.%Y'), delta.strftime('%d.%m.%Y')
     ]]
 
-    body = {
-        'majorDimension': "ROWS",
-        'values': values
-    }
-
-    result = service.spreadsheets().values().append(
-        spreadsheetId=spreadsheet_id, range=range, body=body, valueInputOption="USER_ENTERED"
-    ).execute()
-
-    logger.log('REGISTRATION', f'trainee {fullname} {username} routed to mentor {mentor_shortname}.')
-    logger.log(
-        'GOOGLE',
-        '{0} cells appended to {1}: {2}'.format(result.get('updates').get('updatedCells'), range, str(*values))
-    )
+    api.append_values(values=values)

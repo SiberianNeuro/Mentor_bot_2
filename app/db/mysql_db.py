@@ -3,7 +3,6 @@ from loguru import logger
 from typing import Union, Any
 
 from app.models.database import mysql_connection
-from app.models.database import conn, cur
 
 
 """Запросы от администратора"""
@@ -11,9 +10,11 @@ from app.models.database import conn, cur
 
 # Вытащить айдишник юзера
 async def get_user_id(data: str) -> tuple:
-    sql = "SELECT id FROM staffs WHERE fullname = %s"
-    cur.execute(sql, (data,))
-    result = cur.fetchone()
+    with mysql_connection() as conn:
+        cur = conn.cursor()
+        sql = "SELECT id FROM staffs WHERE fullname = %s"
+        cur.execute(sql, (data,))
+        result = cur.fetchone()
     return result
 
 
@@ -31,7 +32,7 @@ async def admin_check(obj: Union[str, int]) -> bool:
 
 
 # Добавить опрос в БД
-async def exam_processing(data: dict) -> tuple:
+async def exam_processing(data: dict) -> dict:
     with mysql_connection() as conn:
         cur = conn.cursor(cursor=pymysql.cursors.DictCursor)
         insert_exam = "INSERT INTO exams (document_id, " \
@@ -80,10 +81,10 @@ async def exam_processing(data: dict) -> tuple:
 
 
 # Найти все опросы по ФИО стажера
-async def db_search_exam(data: str) -> tuple:
+async def db_search_exam(data: str) -> dict:
     with mysql_connection() as conn:
-        cur = conn.cursor()
-        cur.execute('SELECT ex.id, ex.document_id, s.fullname, st.stage, r.result, '
+        cur = conn.cursor(cursor=pymysql.cursors.DictCursor)
+        cur.execute('SELECT ex.stage_id, ex.result_id, ex.id, ex.document_id, s.fullname, st.stage, r.result, '
                     'ex.score, ex.link, ex.calls, DATE_FORMAT(ex.retake_date, "%%d.%%m.%%Y") AS retake_date '
                     'FROM exams ex '
                     'JOIN staffs s ON ex.user_id = s.id '
@@ -91,6 +92,7 @@ async def db_search_exam(data: str) -> tuple:
                     'JOIN results r ON ex.result_id = r.id '
                     'WHERE fullname LIKE %s', ('%' + data + '%',))
         result = cur.fetchall()
+        print(result)
     return result
 
 

@@ -6,22 +6,28 @@ class Wrappers:
             if value is None:
                 data[key] = '-'
 
-        wrapper = f'<b>{data["fullname"]}</b>\n'
-        f'Формат опроса - {data["stage"]}\n'
-        f'Статус аттестации - {data["result"]}\n'
-        f'Набрано баллов - {data["score"]}\n'
-        f'Ссылка YT: {data["link"]}\n'
+        wrapper = f'<b>{data["fullname"]}</b>\n' \
+                  f'Формат опроса - {data["stage"]}\n' \
+                  f'Статус аттестации - {data["result"]}\n' \
+                  f'Набрано баллов - {data["score"]}\n' \
+                  f'Ссылка YT: {data["link"]}\n'
 
-        if data['result_id'] and data['stage_id'] == 3:
+        print(wrapper)
+        if data['result_id'] == 3 and data['stage_id'] == 3:
             wrapper += f'Звонки: \n{data["calls"]}'
+        print(wrapper)
 
         if data['result_id'] == 2:
             wrapper += f'Дата переаттестации - {data["retake_date"]}'
+        print(wrapper)
 
         if data['result_id'] == 1:
             wrapper += f'<i>Последняя аттестация. Увольнение сотрудника</i>\n'
+        print(wrapper)
 
-        return {"document": data['document_id'], "wrapper": wrapper, "exam_id": data['id']}
+        return {"document": data['document_id'], "wrapper": wrapper, "exam_id": data['id'],
+                "stage_id": data['stage_id'],
+                "result_id": data['result_id']}
 
     @staticmethod
     async def user_wrapper(user_info: dict) -> dict:
@@ -50,121 +56,18 @@ class Wrappers:
     async def welcome_wrapper(welcome_info: dict) -> str:
         wrapper = f'Теперь я покажу тебе необходимые telegram-группы 👻\n\n'
 
+        mentor_chat_link = welcome_info['l1_chat'] if welcome_info['role_id'] == 12 else welcome_info['l3_chat']
+
         if welcome_info['role_id'] != 12:
             wrapper += f'<b>{welcome_info["doctors_chat"]}</b>\n' \
                        f'Эта ссылка приведет тебя на канал, где общаются все наши доктора 🧑‍⚕\n\n' \
                        f'<b>{welcome_info["headmaster_chat"]}</b>\n' \
                        f'Эта ссылка приведет тебя в группу, где общаются все стажеры 😉'
 
-        wrapper += f'<b>{welcome_info["mentor_chat"]}</b>\n' \
+        wrapper += f'<b>{mentor_chat_link}</b>\n' \
                    f'По этой ссылке ты попадешь в чат своей учебной группы 👩‍🎓\n' \
                    f'Твой наставник, {welcome_info["mentor_name"]} {welcome_info["mentor_username"]}, ' \
                    f'будет на связи с тобой всегда и по любым вопросам 🤩\n' \
                    f'Обязательно нажми на каждую ссылку, чтобы попасть чат 😇'
 
         return wrapper
-
-#             await msg.answer_document(document_id,
-#                                       caption=f'<b>{fullname}</b>\n'
-#                                               f'Формат опроса - {stage}\n'
-#                                               f'Статус аттестации - {result}\n'
-#                                               f'Набрано баллов - {score}\n'
-#                                               f'Ссылка YT: {link}\n'
-#                                               f'Звонки: \n{calls}',
-#                                       reply_markup=await get_delete_button(id)
-#                                       )
-#             await msg.answer('Мы закончили, мы молодцы 👌', reply_markup=await admin_kb.get_admin_kb())
-#             if stage in ("Опрос на И.О.", "Опрос на врача", "Аттестация стажера L1"):
-#                 await bot.send_document(
-#                     -781832035, document_id,
-#                     caption=f'<b>{fullname}</b>\nФормат опроса: {stage}\nСтатус аттестации: {result}\nСсылка YT: {link}\nЗвонки:\n{calls}'
-#                 )
-#             await bot.send_document(
-#                 -1001776821827, document_id,
-#                 caption=f'<b>{fullname}</b>\nФормат опроса: {stage}\nСтатус аттестации: {result}\nСсылка YT: {link}\nЗвонки:\n{calls}'
-#             )
-#         elif result == "Аттестация не пройдена ❌":
-#             await msg.answer_document(document_id,
-#                                       caption=f'<b>{fullname}</b>\n'
-#                                               f'Формат опроса - {stage}\n'
-#                                               f'Статус аттестации - {result}\n'
-#                                               f'Набрано баллов - {score}\n'
-#                                               f'<i>Последняя аттестация. Увольнение сотрудника</i>\n'
-#                                               f'Ссылка YT: {link}',
-#                                       reply_markup=await get_delete_button(id))
-#             await msg.answer('Мы закончили, мы молодцы 👌', reply_markup=await admin_kb.get_admin_kb())
-#             await bot.send_document(
-#                 -781832035, document_id,
-#                 caption=f'<b>{fullname}</b>\n'
-#                         f'Формат опроса: {stage}\n'
-#                         f'Статус аттестации: {result}\n'
-#                         f'<i>Последняя аттестация. Увольнение сотрудника</i>\n'
-#                         f'Ссылка YT: {link}'
-#             )
-#             await bot.send_document(
-#                 -1001776821827, document_id,
-#                 caption=f'<b>{fullname}</b>\n'
-#                         f'Формат опроса: {stage}\n'
-#                         f'Статус аттестации: {result}\n'
-#                         f'<i>Последняя аттестация. Увольнение сотрудника</i>\n'
-#                         f'Ссылка YT: {link}'
-#             )
-#         elif data[4] == "На пересдачу ⚠️":
-#             await msg.answer_document(document_id,
-#                                       caption=f'<b>{fullname}</b>\n'
-#                                               f'Формат опроса - {stage}\n'
-#                                               f'Статус аттестации - {result}\n'
-#                                               f'Набрано баллов - {score}\n'
-#                                               f'Дата переаттестации - {retake_date}\n'
-#                                               f'Ссылка YT: {link}',
-#                                       reply_markup=await get_delete_button(id)
-#                                       )
-#             await msg.answer('Мы закончили, мы молодцы 👌', reply_markup=await admin_kb.get_admin_kb())
-#             await bot.send_document(
-#                 -1001776821827, document_id,
-#                 caption=f'<b>{fullname}</b>\n'
-#                         f'Формат опроса: {stage}\n'
-#                         f'Статус аттестации: {result}\n'
-#                         f'Дата переаттестации - {retake_date}\n'
-#                         f'Ссылка YT: {link}'
-#             )
-#
-#
-# async def search_wrapper(resp, msg: types.Message):
-#     """
-#         Оболочка для результатов опроса.
-#         param: resp: результат запроса SQL
-#         param: m: объект телеграм API - сообщение
-#         """
-#     for data in resp:
-#         retake_date = data[8] if data[8] is not None else "-"
-#         if data[4] == "Аттестация пройдена ✅":
-#             await msg.answer_document(data[1],
-#                                       caption=f'<b>{data[2]}</b>\n'
-#                                               f'Формат опроса - {data[3]}\n'
-#                                               f'Статус аттестации - {data[4]}\n'
-#                                               f'Набрано баллов - {data[5]}\n'
-#                                               f'Ссылка YT: {data[6]}\n'
-#                                               f'Звонки: \n{data[7]}',
-#                                       reply_markup=await get_delete_button(data[0])
-#                                       )
-#         elif data[4] == "Аттестация не пройдена ❌":
-#             await msg.answer_document(data[1],
-#                                       caption=f'<b>{data[2]}</b>\n'
-#                                               f'Формат опроса - {data[3]}\n'
-#                                               f'Статус аттестации - {data[4]}\n'
-#                                               f'Набрано баллов - {data[5]}\n'
-#                                               f'<i>Последняя аттестация. Увольнение сотрудника</i>\n'
-#                                               f'Ссылка YT: {data[6]}',
-#                                       reply_markup=await get_delete_button(data[0])
-#                                       )
-#         elif data[4] == "На пересдачу ⚠️":
-#             await msg.answer_document(data[1],
-#                                       caption=f'<b>{data[2]}</b>\n'
-#                                               f'Формат опроса - {data[3]}\n'
-#                                               f'Статус аттестации - {data[4]}\n'
-#                                               f'Набрано баллов - {data[5]}\n'
-#                                               f'Дата переаттестации - {retake_date}\n'
-#                                               f'Ссылка YT: {data[6]}',
-#                                       reply_markup=await get_delete_button(data[0])
-#                                       )
