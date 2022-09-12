@@ -5,7 +5,7 @@ from aiogram_calendar import SimpleCalendar, simple_cal_callback
 
 from loguru import logger
 
-from app.db.mysql_db import exam_processing, db_search_exam, delete_exam, get_user_info, get_admin, \
+from app.db.data_queries import exam_processing, db_search_exam, delete_exam, get_user_info, get_admin, \
     change_user_active_status
 from app.utils.misc.sheets_append import add_user_array
 from app.utils.misc.wrappers import Wrappers

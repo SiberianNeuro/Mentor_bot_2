@@ -48,7 +48,6 @@ async def get_calls(phone_number: str, call_date: str) -> str:
         async with session.post("https://dataapi.uiscom.ru/v2.0", json=params) as response:
             res = await response.json()
     string = ''
-    print(res)
     if res['result']:
         if res['result']['data']:
             for num, call in enumerate(res['result']['data'], 1):

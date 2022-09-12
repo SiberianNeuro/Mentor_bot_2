@@ -1,7 +1,7 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.callback_data import CallbackData
 
-from app.db.get_buttons import *
+from app.db.button_queries import *
 
 
 # Стартовая админская клавиатура
@@ -37,9 +37,9 @@ async def get_overload_keyboard() -> InlineKeyboardMarkup:
 async def get_stage_keyboard() -> InlineKeyboardMarkup:
     buttons = await get_stage_buttons()
     format_keyboard = InlineKeyboardMarkup(row_width=2)
-    for data, text in buttons:
+    for button in buttons:
         format_keyboard.insert(InlineKeyboardButton(
-            text=text, callback_data=exam_callback.new(action='format', action_data=data)
+            text=button['stage'], callback_data=exam_callback.new(action='format', action_data=button['id'])
         ))
     return format_keyboard
 
@@ -48,9 +48,9 @@ async def get_stage_keyboard() -> InlineKeyboardMarkup:
 async def get_result_keyboard() -> InlineKeyboardMarkup:
     buttons = await get_result_buttons()
     result_keyboard = InlineKeyboardMarkup(row_width=1)
-    for data, text in buttons:
+    for button in buttons:
         result_keyboard.insert(InlineKeyboardButton(
-            text=text, callback_data=exam_callback.new(action='result', action_data=data)
+            text=button['result'], callback_data=exam_callback.new(action='result', action_data=button['id'])
         ))
     return result_keyboard
 
@@ -112,16 +112,16 @@ async def get_execute_button() -> InlineKeyboardMarkup:
 async def get_roles_keyboard() -> InlineKeyboardMarkup:
     buttons = await get_role_buttons()
     roles_keyboard = InlineKeyboardMarkup(row_width=2)
-    for data, text in buttons:
-        roles_keyboard.insert(InlineKeyboardButton(text=text, callback_data=mailing_callback.new(action='worker', c_data=data)))
+    for button in buttons:
+        roles_keyboard.insert(InlineKeyboardButton(text=button['name'], callback_data=mailing_callback.new(action='worker', c_data=button['id'])))
     return roles_keyboard
 
 
-async def get_trainee_phones(admin_id) -> InlineKeyboardMarkup:
-    buttons = await get_phone_buttons(admin_id)
+async def get_trainee_phones() -> InlineKeyboardMarkup:
+    buttons = await get_phone_buttons()
     phones_keyboard = InlineKeyboardMarkup(row_width=2)
-    for text, data in buttons:
-        phones_keyboard.insert(InlineKeyboardButton(text=text, callback_data=exam_callback.new(action='phones', action_data=data)))
+    for button in buttons:
+        phones_keyboard.insert(InlineKeyboardButton(text=button['phone_name'], callback_data=exam_callback.new(action='phones', action_data=button['phone_number'])))
     return phones_keyboard
 
 """Клавиатура распределения"""
@@ -133,8 +133,8 @@ mentor_callback = CallbackData('mentors', 'mentor_id', 'role_id', 'user_id')
 async def get_mentors_keyboard(obj) -> InlineKeyboardMarkup:
     buttons = await get_mentors_buttons()
     mentors_keyboard = InlineKeyboardMarkup(row_width=1)
-    for data, text, role in buttons:
+    for button in buttons:
         mentors_keyboard.insert(InlineKeyboardButton(
-            text=text, callback_data=mentor_callback.new(mentor_id=data, role_id=role, user_id=obj)
+            text=button['fullname'], callback_data=mentor_callback.new(mentor_id=button['id'], role_id=button['role_id'], user_id=obj)
         ))
     return mentors_keyboard

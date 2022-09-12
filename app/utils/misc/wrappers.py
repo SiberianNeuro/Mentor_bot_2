@@ -12,18 +12,14 @@ class Wrappers:
                   f'Набрано баллов - {data["score"]}\n' \
                   f'Ссылка YT: {data["link"]}\n'
 
-        print(wrapper)
         if data['result_id'] == 3 and data['stage_id'] == 3:
             wrapper += f'Звонки: \n{data["calls"]}'
-        print(wrapper)
 
         if data['result_id'] == 2:
             wrapper += f'Дата переаттестации - {data["retake_date"]}'
-        print(wrapper)
 
         if data['result_id'] == 1:
             wrapper += f'<i>Последняя аттестация. Увольнение сотрудника</i>\n'
-        print(wrapper)
 
         return {"document": data['document_id'], "wrapper": wrapper, "exam_id": data['id'],
                 "stage_id": data['stage_id'],

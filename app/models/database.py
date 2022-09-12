@@ -9,7 +9,7 @@ def mysql_connection():
                 user=config.db.db_user,
                 password=config.db.db_pass,
                 database=config.db.db_name,
-                cursorclass=pymysql.cursors.Cursor,
+                cursorclass=pymysql.cursors.DictCursor,
                 charset="utf8mb4",
             )
     return conn

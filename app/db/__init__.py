@@ -1,1 +1,1 @@
-from app.db import mysql_db
+from app.db import data_queries

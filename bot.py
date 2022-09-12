@@ -1,3 +1,5 @@
+import asyncio
+
 from aiogram.utils import executor
 from loguru import logger
 
@@ -7,13 +9,18 @@ from app.utils.set_bot_commands import set_default_commands
 
 
 async def on_startup(dp):
-    from app import filters, middlewares
+    from app.services.scheduler import scheduler
+    logger.info("Configure scheduler tasks...")
+    asyncio.create_task(scheduler())
 
-    await set_default_commands(dp)  # Установка меню команд
+    logger.info("Configure default commands...")
+    await set_default_commands(dp)
+
+    from app import filters, middlewares
     middlewares.setup(dp)
     filters.setup(dp)
 
-    from app.handlers.users import admin, mailing_admin, other
+    from app.handlers.users import admin, mailing_admin, other, duty_line_doc
     from app.handlers.errors import error_handler
     from app.handlers.channels import trainee_channels
     logger.info("Configure handlers...")

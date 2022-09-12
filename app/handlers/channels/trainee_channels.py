@@ -2,7 +2,7 @@ from aiogram import types, Dispatcher
 
 from loguru import logger
 
-from app.db.mysql_db import get_chat_members
+from app.db.data_queries import get_chat_members
 
 
 async def new_member(msg: types.Message):

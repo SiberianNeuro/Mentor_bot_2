@@ -4,7 +4,7 @@ from docx.opc.exceptions import PackageNotFoundError
 import os
 from datetime import datetime
 
-from app.db.mysql_db import get_user_id
+from app.db.data_queries import get_user_id
 from loader import config, bot
 
 
@@ -103,4 +103,4 @@ async def file_parser(fileid: str, filename: str) -> tuple:
     finally:
         os.remove(filename)
 
-        return fullname, user_id, stage_id, result_id, score, exam_date, retake_date
+        return fullname, user_id['id'], stage_id, result_id, score, exam_date, retake_date

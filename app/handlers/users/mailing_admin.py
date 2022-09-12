@@ -1,7 +1,7 @@
 import asyncio
 from loguru import logger
 
-from app.db.mysql_db import active_users, get_current_roles
+from app.db.data_queries import active_users, get_current_roles
 from loader import bot
 from app.models.states import Mailing
 from app.keyboards.admin_kb import get_mailing_keyboard, mailing_callback, get_execute_button, \
@@ -57,7 +57,7 @@ async def chose_workers(c: types.CallbackQuery, state: FSMContext, callback_data
             roles = await get_current_roles(data['roles'])
         await c.message.answer('Давай проверим роли:')
         for role in roles:
-            await c.message.answer(f'{role[0]}')
+            await c.message.answer(f'{role["name"]}')
         await c.message.answer('Если все верно, нажимай подтвердить, если нет, то снова напиши <b>/mailing</b>',
                                reply_markup=await text_switch_button())
         await c.message.delete()
@@ -148,8 +148,6 @@ async def execute_mailing(call: types.CallbackQuery, state: FSMContext):
                               f'Количество целевых пользователей - {len(user_list)}')
     counter = 0
     text_list = text_list * (len(user_list) // len(text_list)) + text_list[:(len(user_list) % len(text_list))]
-    # logging.info(f'{text_list}')
-    # logging.info(f'{user_list}')
     for i in range(len(user_list)):
         try:
             await bot.send_message(chat_id=user_list[i]['chat_id'],

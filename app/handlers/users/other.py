@@ -5,14 +5,13 @@ import random
 from aiogram.dispatcher import FSMContext
 from aiogram import types, Dispatcher
 from aiogram.dispatcher.filters import Text, CommandStart
-from aiogram.dispatcher.handler import ctx_data
 
 from app.keyboards.other_kb import *
 from app.keyboards.admin_kb import get_mentors_keyboard
 from app.utils.misc.wrappers import Wrappers
 from app.models.states import Register
 
-from app.db.mysql_db import is_register, user_db_roundtrip
+from app.db.data_queries import is_register, user_db_roundtrip
 
 from app.models.simple_answers import answers
 
@@ -25,8 +24,7 @@ async def commands_start(msg: types.Message, state: FSMContext):
     await msg.delete()
     await msg.answer_sticker('CAACAgIAAxkBAAIE4GKSGruXCE8S-gM_iIJyaTbM9TGYAAJPAAOtZbwUa5EcjYesr5MkBA')
     await msg.answer('Привет ✌\n\nЯ помощник в медицинском отделе ДОК 🤖')
-    data = ctx_data.get()
-    if data['is_register']:
+    if await is_register(msg.from_user.id):
         await msg.answer('Вижу, что ты уже зарегистрирован 🤠\n\nЧем могу помочь?',
                          reply_markup=types.ReplyKeyboardRemove())
     else:
