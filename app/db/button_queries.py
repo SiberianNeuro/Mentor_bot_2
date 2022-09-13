@@ -58,3 +58,11 @@ async def get_phone_buttons() -> dict:
     result = cur.fetchall()
     return result
 
+
+async def get_teams_buttons() -> dict:
+    cur.execute(
+        "SELECT t.name AS team_name, t.id AS team_id FROM lib_teams t"
+    )
+    result = cur.fetchall()
+    return result
+

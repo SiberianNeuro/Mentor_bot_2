@@ -20,16 +20,35 @@ async def get_user_id(data: str) -> dict:
 
 
 # Проверяем пользователя на администратора
-async def admin_check(obj: Union[str, int]) -> bool:
+async def choose_team(obj: Union[str, int]) -> dict:
     # with mysql_connection() as conn:
     #     cur = conn.cursor()
-    sql = "SELECT chat_id FROM admins WHERE chat_id = %s AND active = 1"
+    sql = "SELECT team_id, role_id, division_id FROM staffs s " \
+          "JOIN lib_teams lt ON s.team_id = lt.id " \
+          "WHERE chat_id = %s AND active = 1"
     cur.execute(sql, obj)
     result = cur.fetchone()
-    if result is None:
-        return False
-    else:
-        return True
+    cur.execute('SELECT ')
+    return result
+
+
+async def define_team(team: Union[str, int], user_id: str) -> dict:
+    cur.execute("UPDATE staffs SET team_id = %s WHERE id = %s", team, user_id)
+    conn.commit()
+    cur.execute("SELECT s.fullname, s.chat_id FROM staffs s "
+                "WHERE s.team_id = %s AND active = 1", team)
+    info = cur.fetchone()
+    cur.execute(
+        query="SELECT s.id, fullname, username, r.name, city, t.stage, profession, start_year, end_year, "
+              "phone, email, s.role_id, s.active AS active, t.name FROM staffs s "
+              "JOIN traineeships t on t.id = s.traineeship_id "
+              "JOIN roles r on r.id = s.role_id "
+              "JOIN lib_teams t ON s.team_id = t.id "
+              "WHERE s.id = %s",
+        args=user_id
+    )
+    info['user_info'] = cur.fetchone()
+    return info
 
 
 # Добавить опрос в БД

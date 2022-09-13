@@ -3,6 +3,9 @@ from aiogram.utils.callback_data import CallbackData
 
 from app.db.button_queries import *
 
+exam_callback = CallbackData('exam', 'action', 'action_data')
+mentor_callback = CallbackData('mentors', 'mentor_id', 'role_id', 'user_id')
+teams_callback = CallbackData('teams', 'team_id', 'user_id')
 
 # Стартовая админская клавиатура
 async def get_admin_kb() -> ReplyKeyboardMarkup:
@@ -20,20 +23,20 @@ async def get_admin_kb() -> ReplyKeyboardMarkup:
 
 """Клавиатуры загрузки протоколов"""
 
-exam_callback = CallbackData('exam', 'action', 'action_data')
 
 # Клавиатура подтверждения валидности опроса
 async def get_overload_keyboard() -> InlineKeyboardMarkup:
     buttons = (
         InlineKeyboardButton(text='Подтвердить ✅', callback_data=exam_callback.new(action='overload', action_data='1')),
-        InlineKeyboardButton(text='Перезагрузить 🔄', callback_data=exam_callback.new(action='overload', action_data='2'))
+        InlineKeyboardButton(text='Перезагрузить 🔄',
+                             callback_data=exam_callback.new(action='overload', action_data='2'))
     )
     overload_keyboard = InlineKeyboardMarkup(row_width=1)
     overload_keyboard.add(*buttons)
     return overload_keyboard
 
 
-#Клавиатура загрузки формата опроса
+# Клавиатура загрузки формата опроса
 async def get_stage_keyboard() -> InlineKeyboardMarkup:
     buttons = await get_stage_buttons()
     format_keyboard = InlineKeyboardMarkup(row_width=2)
@@ -58,10 +61,11 @@ async def get_result_keyboard() -> InlineKeyboardMarkup:
 # Кнопка "удалить" под каждым протоколом
 async def get_delete_button(id: int) -> InlineKeyboardMarkup:
     button = InlineKeyboardButton(
-            'Удалить аттестацию ❌', callback_data=exam_callback.new(action='delete', action_data=id))
+        'Удалить аттестацию ❌', callback_data=exam_callback.new(action='delete', action_data=id))
     delete_keyboard = InlineKeyboardMarkup(row_width=1)
     delete_keyboard.add(button)
     return delete_keyboard
+
 
 active_callback = CallbackData('change_active', 'active_action', 'user_id', 'active_now')
 
@@ -94,7 +98,8 @@ async def get_mailing_keyboard() -> InlineKeyboardMarkup:
 
 # Переход от выбора ролей к добавлению тестов
 async def text_switch_button() -> InlineKeyboardMarkup:
-    button = InlineKeyboardButton(text='Загрузить текст(-ы)', callback_data=mailing_callback.new(action='execute', c_data=0))
+    button = InlineKeyboardButton(text='Загрузить текст(-ы)',
+                                  callback_data=mailing_callback.new(action='execute', c_data=0))
     text_switch = InlineKeyboardMarkup(row_width=1)
     text_switch.add(button)
     return text_switch
@@ -102,7 +107,8 @@ async def text_switch_button() -> InlineKeyboardMarkup:
 
 # Переход от тестов к рассылке
 async def get_execute_button() -> InlineKeyboardMarkup:
-    button = InlineKeyboardButton(text='Начать рассылку', callback_data=mailing_callback.new(action='execute', c_data=0))
+    button = InlineKeyboardButton(text='Начать рассылку',
+                                  callback_data=mailing_callback.new(action='execute', c_data=0))
     execute_button = InlineKeyboardMarkup(row_width=1)
     execute_button.add(button)
     return execute_button
@@ -113,7 +119,9 @@ async def get_roles_keyboard() -> InlineKeyboardMarkup:
     buttons = await get_role_buttons()
     roles_keyboard = InlineKeyboardMarkup(row_width=2)
     for button in buttons:
-        roles_keyboard.insert(InlineKeyboardButton(text=button['name'], callback_data=mailing_callback.new(action='worker', c_data=button['id'])))
+        roles_keyboard.insert(InlineKeyboardButton(text=button['name'],
+                                                   callback_data=mailing_callback.new(action='worker',
+                                                                                      c_data=button['id'])))
     return roles_keyboard
 
 
@@ -121,13 +129,13 @@ async def get_trainee_phones() -> InlineKeyboardMarkup:
     buttons = await get_phone_buttons()
     phones_keyboard = InlineKeyboardMarkup(row_width=2)
     for button in buttons:
-        phones_keyboard.insert(InlineKeyboardButton(text=button['phone_name'], callback_data=exam_callback.new(action='phones', action_data=button['phone_number'])))
+        phones_keyboard.insert(InlineKeyboardButton(text=button['phone_name'],
+                                                    callback_data=exam_callback.new(action='phones', action_data=button[
+                                                        'phone_number'])))
     return phones_keyboard
 
+
 """Клавиатура распределения"""
-
-
-mentor_callback = CallbackData('mentors', 'mentor_id', 'role_id', 'user_id')
 
 
 async def get_mentors_keyboard(obj) -> InlineKeyboardMarkup:
@@ -135,6 +143,22 @@ async def get_mentors_keyboard(obj) -> InlineKeyboardMarkup:
     mentors_keyboard = InlineKeyboardMarkup(row_width=1)
     for button in buttons:
         mentors_keyboard.insert(InlineKeyboardButton(
-            text=button['fullname'], callback_data=mentor_callback.new(mentor_id=button['id'], role_id=button['role_id'], user_id=obj)
+            text=button['fullname'],
+            callback_data=mentor_callback.new(mentor_id=button['id'], role_id=button['role_id'], user_id=obj)
         ))
     return mentors_keyboard
+
+
+async def get_clusters_keyboard(user_id) -> InlineKeyboardMarkup:
+    buttons = await get_teams_buttons()
+    cluster_keyboard = InlineKeyboardMarkup(row_width=5)
+    for button in buttons:
+        cluster_keyboard.insert(
+            InlineKeyboardButton(
+                text=button['team_name'], callback_data=teams_callback.new(
+                    team_id=button['team_id'],
+                    user_id=user_id
+                )
+            )
+        )
+    return cluster_keyboard

@@ -5,8 +5,7 @@ from aiogram_calendar import SimpleCalendar, simple_cal_callback
 
 from loguru import logger
 
-from app.db.data_queries import exam_processing, db_search_exam, delete_exam, get_user_info, get_admin, \
-    change_user_active_status
+from app.db.data_queries import *
 from app.utils.misc.sheets_append import add_user_array
 from app.utils.misc.wrappers import Wrappers
 from app.models.states import Exam
@@ -165,6 +164,15 @@ async def load_link(msg: types.Message, state: FSMContext):
                 document=exam_info['document'],
                 caption=exam_info['wrapper'],
             )
+        if exam_info['stage_id'] == 3 and exam_info['result_id'] == 3:
+            user_info = await get_user_info(wrapper['fullname'])
+            user_wrapper = await Wrappers.user_wrapper(user_info)
+            await msg.bot.send_message(
+                chat_id=config.misc.doc_lead_chat,
+                text=f'Требуется распределение ИО врача в кластер:\n'
+                     f'{user_wrapper["wrapper"]}',
+                reply_markup=await get_clusters_keyboard(to_sql['user_id'])
+            )
     except Exception as e:
         logger.exception(e)
     finally:
@@ -290,8 +298,26 @@ async def calls_result(call: types.CallbackQuery, callback_data: dict, state: FS
 """Распределение"""
 
 
-async def route_trainees(call: types.CallbackQuery, callback_data: dict):
+async def route_teams(call: types.CallbackQuery, callback_data: dict):
+    team = callback_data.get('team_id')
+    user_id = callback_data.get('user_id')
 
+    info = await define_team(team=team, user_id=user_id)
+    user_wrapper = await Wrappers.user_wrapper(info['user_info'])
+    await call.message.answer('Стажер распределен!')
+    await call.bot.send_message(
+        chat_id=info['chat_id'],
+        text=f'{info["fullname"].split(" ")[1]}, тебе определен новый врач:\n\n{user_wrapper["wrapper"]}'
+    )
+    await call.bot.send_message(
+        chat_id=config.misc.exam_chat,
+        text='ИО врача {0} назначен в команду {1}'.format(
+            user_wrapper["wrapper"].split("\n")[0], user_wrapper["wrapper"].split("\n")[1]
+        )
+    )
+
+
+async def route_trainees(call: types.CallbackQuery, callback_data: dict):
     mentor_id = int(callback_data.get('mentor_id'))
     role_id = int(callback_data.get('role_id'))
     user_chat_id = int(callback_data.get('user_id'))
@@ -357,4 +383,5 @@ def setup(dp: Dispatcher):
                                        state=Exam.calls_searching)
     dp.register_callback_query_handler(calls_result, simple_cal_callback.filter(), is_admin=True,
                                        state=Exam.calls_searching)
+    dp.register_callback_query_handler(route_teams, mentor_callback.filter(mentor_id='clusters'), is_admin=True)
     dp.register_callback_query_handler(route_trainees, mentor_callback.filter(), is_admin=True)

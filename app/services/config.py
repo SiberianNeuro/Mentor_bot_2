@@ -27,6 +27,8 @@ class Miscellaneous:
     kor_chat: str
     router_chat: str
     exam_chat: str
+    doc_lead_chat: str
+
 
 @dataclass
 class Config:
@@ -60,6 +62,7 @@ def load_config(path: str = None) -> Config:
             kis_chat=env.str("DASHA_GROUP_CHAT_ID"),
             kor_chat=env.str("SASHA_GROUP_CHAT_ID"),
             router_chat=env.str("ROUTER_CHAT_ID"),
-            exam_chat=env.str("EXAMS_CHAT_ID")
+            exam_chat=env.str("EXAMS_CHAT_ID"),
+            doc_lead_chat=env.str("DOC_LEAD_CHAT_ID")
         )
     )

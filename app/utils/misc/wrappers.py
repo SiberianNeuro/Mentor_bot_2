@@ -31,7 +31,9 @@ class Wrappers:
             if value is None:
                 user_info[key] = '-'
         active = 'Активирован' if user_info['active'] == 1 else 'Деактивирован'
-        wrapper = f'<b>{user_info["fullname"]}</b> {user_info["username"]}\n<u>{active}</u>\n\n' \
+        wrapper = f'<b>{user_info["fullname"]}</b> {user_info["username"]}\n' \
+                  f'Команда: {user_info["team"]}' \
+                  f'<u>{active}</u>\n\n' \
                   f'Должность: {user_info["name"]}\n' \
                   f'Город: {user_info["city"]}\n'
 
