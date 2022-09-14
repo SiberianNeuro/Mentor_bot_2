@@ -3,8 +3,6 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher.filters import Text
 from aiogram_calendar import SimpleCalendar, simple_cal_callback
 
-from loguru import logger
-
 from app.db.data_queries import *
 from app.utils.misc.sheets_append import add_user_array
 from app.utils.misc.wrappers import Wrappers
@@ -14,6 +12,8 @@ from app.services.get_trainee_calls import get_calls
 from app.keyboards.other_kb import get_cancel_button
 from app.keyboards.admin_kb import *
 from app.services.config import load_config
+
+from loguru import logger
 
 config = load_config(".env")
 
@@ -191,11 +191,11 @@ async def delete_exam_callback(call: types.CallbackQuery, callback_data: dict):
 async def change_active_callback(call: types.CallbackQuery, callback_data: dict):
     active = callback_data.get('active_now')
     user = await change_user_active_status(callback_data.get("user_id"), active)
-    message_text = f'Пользователь {user["user_fullname"]} '
+    message_text = f'Пользователь {user["username"]} '
     message_text += 'деактивирован' if active == '1' else 'активирован'
 
     await call.answer(text=message_text, show_alert=True)
-    user_info = await Wrappers.user_wrapper(user['user_info'])
+    user_info = await Wrappers.user_wrapper(user)
     logger.warning(f'@{call.from_user.username} changed user {user["user_fullname"]} status to {user_info["active"]}')
     await call.message.edit_text(
         text=user_info['wrapper'], reply_markup=await change_active_button(
@@ -265,7 +265,7 @@ async def get_trainee_calls(msg: types.Message):
         '<b>Отмена</b>.',
         reply_markup=await get_cancel_button()
     )
-    await msg.answer('Выбери номер:', reply_markup=await get_trainee_phones(msg.from_user.id))
+    await msg.answer('Выбери номер:', reply_markup=await get_trainee_phones())
     await Exam.calls_searching.set()
 
 

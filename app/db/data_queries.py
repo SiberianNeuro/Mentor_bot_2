@@ -1,8 +1,5 @@
-import pymysql.cursors
-from loguru import logger
 from typing import Union
 
-from app.models.database import mysql_connection
 from app.models.database import conn, cur
 
 
@@ -20,15 +17,15 @@ async def get_user_id(data: str) -> dict:
 
 
 # Проверяем пользователя на администратора
-async def choose_team(obj: Union[str, int]) -> dict:
+async def get_permissions(obj: Union[str, int]) -> dict:
     # with mysql_connection() as conn:
     #     cur = conn.cursor()
-    sql = "SELECT team_id, role_id, division_id FROM staffs s " \
+    sql = "SELECT team_id, role_id, division_id, is_superuser FROM staffs s " \
           "JOIN lib_teams lt ON s.team_id = lt.id " \
+          "JOIN lib_roles lr ON s.role_id = lr.id " \
           "WHERE chat_id = %s AND active = 1"
     cur.execute(sql, obj)
     result = cur.fetchone()
-    cur.execute('SELECT ')
     return result
 
 
@@ -41,8 +38,8 @@ async def define_team(team: Union[str, int], user_id: str) -> dict:
     cur.execute(
         query="SELECT s.id, fullname, username, r.name, city, t.stage, profession, start_year, end_year, "
               "phone, email, s.role_id, s.active AS active, t.name FROM staffs s "
-              "JOIN traineeships t on t.id = s.traineeship_id "
-              "JOIN roles r on r.id = s.role_id "
+              "JOIN lib_traineeships t on t.id = s.traineeship_id "
+              "JOIN lib_roles r on r.id = s.role_id "
               "JOIN lib_teams t ON s.team_id = t.id "
               "WHERE s.id = %s",
         args=user_id
@@ -66,8 +63,8 @@ async def exam_processing(data: dict) -> dict:
                 'ex.score, ex.link, ex.calls, DATE_FORMAT(ex.retake_date, "%%d.%%m.%%Y") AS retake_date '
                 'FROM exams ex '
                 'JOIN staffs s ON ex.user_id = s.id '
-                'JOIN stages st ON ex.stage_id = st.id '
-                'JOIN results r ON ex.result_id = r.id '
+                'JOIN lib_exam_stages st ON ex.stage_id = st.id '
+                'JOIN lib_exam_results r ON ex.result_id = r.id '
                 'WHERE document_id = %s', data.get('document'))
     result = cur.fetchone()
     return result
@@ -81,8 +78,8 @@ async def db_search_exam(data: str) -> dict:
                 'ex.score, ex.link, ex.calls, DATE_FORMAT(ex.retake_date, "%%d.%%m.%%Y") AS retake_date '
                 'FROM exams ex '
                 'JOIN staffs s ON ex.user_id = s.id '
-                'JOIN stages st ON ex.stage_id = st.id '
-                'JOIN results r ON ex.result_id = r.id '
+                'JOIN lib_exam_stages st ON ex.stage_id = st.id '
+                'JOIN lib_exam_results r ON ex.result_id = r.id '
                 'WHERE fullname LIKE %s', ('%' + data + '%',))
     result = cur.fetchall()
     return result
@@ -109,15 +106,12 @@ async def change_user_active_status(user_id: Union[str, int], active: Union[str,
     cur.execute(
         query="SELECT s.id, fullname, username, r.name, city, t.stage, profession, start_year, end_year, "
               "phone, email, s.role_id, s.active AS active FROM staffs s "
-              "JOIN traineeships t on t.id = s.traineeship_id "
-              "JOIN roles r on r.id = s.role_id "
+              "JOIN lib_traineeships t on t.id = s.traineeship_id "
+              "JOIN lib_roles r on r.id = s.role_id "
               "WHERE s.id = %s",
         args=user_id
     )
-    user_info = cur.fetchone()
-    cur.execute(f'SELECT username FROM staffs WHERE id = {user_id}')
-    user_fullname = cur.fetchone()
-    result = {'user_info': user_info, 'user_fullname': user_fullname['username']}
+    result = cur.fetchone()
     return result
 
 
@@ -128,7 +122,7 @@ async def is_register(obj: Union[str, int]) -> bool:
     # with mysql_connection() as conn:
     #     cur = conn.cursor()
 
-    cur.execute("SELECT chat_id FROM staffs WHERE active = 1 AND chat_id = %s", str(obj))
+    cur.execute("SELECT chat_id FROM staffs WHERE active = 1 AND chat_id = %s", obj)
 
     if cur.fetchone() is not None:
         return True
@@ -151,11 +145,10 @@ async def user_db_roundtrip(state: tuple) -> dict:
     conn.commit()
     cur.close()
 
-    cur = conn.cursor(cursor=pymysql.cursors.DictCursor)
     get_user = "SELECT s.id, fullname, username, r.name, city, t.stage, profession, start_year, end_year, " \
                "phone, email, s.role_id, IF(active = 1, 'Активирован', 'Деактивирован') AS active FROM staffs s " \
-               "JOIN traineeships t on t.id = s.traineeship_id " \
-               "JOIN roles r on r.id = s.role_id " \
+               "JOIN lib_traineeships t on t.id = s.traineeship_id " \
+               "JOIN lib_roles r on r.id = s.role_id " \
                "WHERE chat_id = %s AND active = 1"
     cur.execute(get_user, str(state[-1]))
     result = cur.fetchone()
@@ -169,8 +162,8 @@ async def get_user_info(user: Union[str, int]) -> dict:
         cur.execute(
             query="SELECT s.id, fullname, username, r.name, city, t.stage, profession, start_year, end_year, "
                   "phone, email, s.role_id, s.active AS active FROM staffs s "
-                  "JOIN traineeships t on t.id = s.traineeship_id "
-                  "JOIN roles r on r.id = s.role_id "
+                  "JOIN lib_traineeships t on t.id = s.traineeship_id "
+                  "JOIN lib_roles r on r.id = s.role_id "
                   "WHERE fullname LIKE %s",
             args=('%' + user.title() + '%',)
         )
@@ -179,8 +172,8 @@ async def get_user_info(user: Union[str, int]) -> dict:
         cur.execute(
             query="SELECT s.id, fullname, username, r.name, city, t.stage, profession, start_year, end_year, "
                   "phone, email, s.role_id, s.active AS active FROM staffs s "
-                  "JOIN traineeships t on t.id = s.traineeship_id "
-                  "JOIN roles r on r.id = s.role_id "
+                  "JOIN lib_traineeships t on t.id = s.traineeship_id "
+                  "JOIN lib_roles r on r.id = s.role_id "
                   "WHERE chat_id = %s AND active = 1",
             args=str(user)
         )
@@ -203,7 +196,7 @@ async def active_users(data: tuple) -> dict:
 async def get_current_roles(data: tuple) -> dict:
     # with mysql_connection() as conn:
     #     cur = conn.cursor()
-    cur.execute(f"SELECT name FROM roles WHERE id IN {(*data, 'None')}")
+    cur.execute(f"SELECT name FROM lib_roles WHERE id IN {(*data, 'None')}")
     result = cur.fetchall()
     return result
 

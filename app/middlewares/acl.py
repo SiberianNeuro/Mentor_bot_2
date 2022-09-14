@@ -3,7 +3,7 @@ from typing import Optional
 from aiogram import types
 from aiogram.dispatcher.middlewares import BaseMiddleware
 
-from app.db.data_queries import choose_team, is_register
+from app.db.data_queries import get_permissions, is_register
 
 
 class ACLMiddleware(BaseMiddleware):
@@ -12,7 +12,7 @@ class ACLMiddleware(BaseMiddleware):
         chat_id = chat.id if chat else user.id
         chat_type = chat.type if chat else "private"
 
-        admin: dict = await choose_team(user_id)
+        admin: dict = await get_permissions(user_id)
 
         data["team"] = admin
 

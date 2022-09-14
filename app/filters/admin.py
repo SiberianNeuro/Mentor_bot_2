@@ -66,5 +66,15 @@ class IsL1SeniorFilter(BoundFilter):
 
     async def check(self, obj) -> bool:
         data = ctx_data.get()
-        is_l1_senior = data['team']['division_id'] == 3 and data['team']['role_id'] == 11
+        is_l1_senior = data['team']['division_id'] in (3, 5) and data['team']['role_id'] in (1, 2, 3, 5)
         return is_l1_senior
+
+
+@dataclass
+class IsSuperuserFilter(BoundFilter):
+    key = "is_superuser"
+    is_superuser: bool
+
+    async def check(self, obj) -> bool:
+        data = ctx_data.get()
+        is_supervisor = data['team']['is_superuser'] == 1

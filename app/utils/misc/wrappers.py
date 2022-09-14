@@ -41,10 +41,11 @@ class Wrappers:
             wrapper += f'Мед. образование: {user_info["stage"]}\n\n'
 
         elif user_info["role_id"] in (5, 6, 7, 8):
-            wrapper += f'Ординатура: {user_info["stage"]}\n' \
-                       f'Специальность: {user_info["profession"]}\n' \
-                       f'Год поступления: {user_info["start_year"]}\n' \
-                       f'Год выпуска: {user_info["end_year"]}\n\n'
+            wrapper += f'Ординатура: {user_info["stage"]}\n'
+            if user_info["stage"] != "Не планирует поступать":
+                wrapper += f'Специальность: {user_info["profession"]}\n' \
+                           f'Год поступления: {user_info["start_year"]}\n' \
+                           f'Год выпуска: {user_info["end_year"]}\n\n'
 
         wrapper += f'Контактный телефон: {user_info["phone"]}\n' \
                    f'e-mail: {user_info["email"]}'

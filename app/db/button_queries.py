@@ -6,7 +6,7 @@ from app.models.database import conn, cur
 async def get_stage_buttons() -> dict:
     # with mysql_connection() as conn:
     #     cur = conn.cursor()
-    sql = "SELECT * FROM stages"
+    sql = "SELECT * FROM lib_exam_stages"
     cur.execute(sql)
     result = cur.fetchall()
     return result
@@ -16,7 +16,7 @@ async def get_stage_buttons() -> dict:
 async def get_result_buttons() -> dict:
     # with mysql_connection() as conn:
     #     cur = conn.cursor()
-    sql = "SELECT * FROM results"
+    sql = "SELECT * FROM lib_exam_results"
     cur.execute(sql)
     result = cur.fetchall()
     return result
@@ -26,7 +26,7 @@ async def get_result_buttons() -> dict:
 async def get_role_buttons() -> dict:
     # with mysql_connection() as conn:
     #     cur = conn.cursor()
-    sql = "SELECT id, name FROM roles WHERE id BETWEEN 5 AND 11"
+    sql = "SELECT id, name FROM lib_roles WHERE id BETWEEN 5 AND 11"
     cur.execute(sql)
     result = cur.fetchall()
     return result
@@ -35,7 +35,7 @@ async def get_role_buttons() -> dict:
 async def get_education_buttons() -> dict:
     # with mysql_connection() as conn:
     #     cur = conn.cursor()
-    sql = "SELECT id, stage FROM traineeships WHERE id IN (5, 6)"
+    sql = "SELECT id, stage FROM lib_traineeships WHERE id IN (5, 6)"
     cur.execute(sql)
     result = cur.fetchall()
     return result
