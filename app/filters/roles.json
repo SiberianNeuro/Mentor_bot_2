@@ -1,0 +1,7 @@
+{
+  "L2_doc": {"team_id":  [12, 13], "role_id":  [7, 6, 5]},
+  "L2_doc_senior": {"team_id":  [12, 13], "role_id":  [5]},
+  "L3_doc_trainee": {"team_id":  [17, 18], "role_id":  [8]},
+  "L3_doc": {"team_id":  [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], "role_id":  [7, 6, 5]},
+  "L3_doc_senior": {"team_id":  [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], "role_id":  [5]}
+}

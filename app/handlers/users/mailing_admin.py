@@ -1,17 +1,16 @@
 import asyncio
 from loguru import logger
 
-from app.db.data_queries import active_users, get_current_roles
-from loader import bot
+# from loader import bot
 from app.models.states import Mailing
-from app.keyboards.admin_kb import get_mailing_keyboard, mailing_callback, get_execute_button, \
-    get_roles_keyboard, text_switch_button
-from app.keyboards.other_kb import get_cancel_button
+# from app.keyboards.admin_kb import get_mailing_keyboard, mailing_callback, get_execute_button, \
+#     get_roles_keyboard, text_switch_button
+# from app.keyboards.other_kb import get_cancel_button
 
 from aiogram import types, Dispatcher
-from aiogram.dispatcher import FSMContext
-from aiogram.utils.exceptions import ChatNotFound, Unauthorized, RetryAfter
-from aiogram.dispatcher.filters import Text
+from aiogram.fsm.context import FSMContext
+# from aiogram.utils.exceptions import ChatNotFound, Unauthorized, RetryAfter
+from aiogram.filters import Text
 
 """Стартовая команда и загрузка ролей"""
 
@@ -159,19 +158,20 @@ async def execute_mailing(call: types.CallbackQuery, state: FSMContext):
                                         f'Удачи 🍀')
             counter += 1
             logger.success(f"{user_list[i]['username']} {user_list[i]['chat_id']} successfully handled test link.")
-        except ChatNotFound as e:
-            logger.exception(f"{user_list[i]['username']} {user_list[i]['chat_id']}: {e}")
-            await call.message.answer(
-                f"{user_list[i]['username']}: тест не получен. Пользователь отключил меня, либо не регистрировался.")
-        except Unauthorized as e:
-            logger.exception(f"{user_list[i]['username']} {user_list[i]['chat_id']}: {e}")
-            await call.message.answer(
-                f"{user_list[i]['username']}: тест не получен. Пользователь отключил меня, либо не регистрировался.")
-        except RetryAfter as e:
-            logger.error(f'Floodcontrol time - {e.timeout}')
-            await asyncio.sleep(e.timeout)
-    await call.message.answer(f'Рассылка завершена, всего отправлено: {counter}')
-    await state.finish()
+        # except ChatNotFound as e:
+        #     logger.exception(f"{user_list[i]['username']} {user_list[i]['chat_id']}: {e}")
+        #     await call.message.answer(
+        #         f"{user_list[i]['username']}: тест не получен. Пользователь отключил меня, либо не регистрировался.")
+        # except Unauthorized as e:
+        #     logger.exception(f"{user_list[i]['username']} {user_list[i]['chat_id']}: {e}")
+        #     await call.message.answer(
+        #         f"{user_list[i]['username']}: тест не получен. Пользователь отключил меня, либо не регистрировался.")
+        # except RetryAfter as e:
+        #     logger.error(f'Floodcontrol time - {e.timeout}')
+        #     await asyncio.sleep(e.timeout)
+        finally:
+            await call.message.answer(f'Рассылка завершена, всего отправлено: {counter}')
+            await state.finish()
 
 
 def setup(dp: Dispatcher):

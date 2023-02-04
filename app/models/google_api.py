@@ -8,6 +8,7 @@ from google.oauth2 import service_account
 from googleapiclient.errors import HttpError
 
 
+
 class GoogleSheetsApi:
     """
     Usable class for operations on google sheets
@@ -28,10 +29,10 @@ class GoogleSheetsApi:
         self.__spreadsheet_id = spreadsheet_id
         self.__spreadsheet_range = spreadsheet_range
 
-    def __enter__(self):
+    async def __aenter__(self):
         return self
 
-    def __exit__(self, *ext_info):
+    async def __aexit__(self, *ext_info):
         del self
 
     @property
@@ -50,7 +51,7 @@ class GoogleSheetsApi:
     def spreadsheet_range(self, value):
         self.__spreadsheet_range = value
 
-    def append_values(
+    async def append_values(
             self,
             values: typing.Iterable[typing.Iterable[typing.Any]],
             value_input_option: str = "USER_ENTERED",
@@ -73,7 +74,7 @@ class GoogleSheetsApi:
         except HttpError as e:
             logger.error(e)
 
-    def clear_values(self):
+    async def clear_values(self):
         body = {}
         try:
             result = GoogleSheetsApi.__service.spreadsheets().values().clear(
@@ -83,7 +84,7 @@ class GoogleSheetsApi:
         except HttpError as e:
             logger.error(e)
 
-    def get_values(
+    async def get_values(
             self,
             value_render_option: str = "FORMATTED_VALUE",
             date_time_render_option: str = "SERIAL_NUMBER",
@@ -99,6 +100,3 @@ class GoogleSheetsApi:
             return result
         except HttpError as e:
             logger.error(e)
-
-
-

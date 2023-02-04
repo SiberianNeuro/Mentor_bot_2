@@ -1,23 +1,25 @@
-from typing import Optional
+from typing import Callable, Dict, Any, Awaitable, Union
 
-from aiogram import types
-from aiogram.dispatcher.middlewares import BaseMiddleware
+from aiogram import types, BaseMiddleware
 
-from app.db.data_queries import get_permissions, is_register
+from app.models.user import User
 
 
-class ACLMiddleware(BaseMiddleware):
-    async def setup_chat(self, data: dict, user: types.User, chat: Optional[types.Chat] = None):
-        user_id = user.id
-        chat_id = chat.id if chat else user.id
-        chat_type = chat.type if chat else "private"
+class Middleware(BaseMiddleware):
+    def __init__(self, config, db_session) -> None:
+        self.config = config
+        self.db_session = db_session
 
-        admin: dict = await get_permissions(user_id)
-
-        data["team"] = admin
-
-    async def on_pre_process_message(self, message: types.Message, data: dict):
-        await self.setup_chat(data, message.from_user, message.chat)
-
-    async def on_pre_process_callback_query(self, query: types.CallbackQuery, data: dict):
-        await self.setup_chat(data, query.from_user, query.message.chat if query.message else None)
+    async def __call__(
+            self,
+            handler: Callable[[types.TelegramObject, Dict[str, Any]], Awaitable[Any]],
+            event: types.TelegramObject,
+            data: Dict[str, Any]
+    ) -> Any:
+        async with self.db_session.begin() as ses:
+            user: User = await ses.get(User, data['event_from_user'].id)
+        print('conf')
+        data['db'] = self.db_session
+        data['config'] = self.config
+        data['user'] = user if user and user.active == 1 else None
+        return await handler(event, data)

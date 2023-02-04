@@ -1,8 +1,8 @@
-from aiogram.dispatcher.filters.state import StatesGroup, State
+from aiogram.fsm.state import StatesGroup, State
 
 
 # Состояния для опросов
-class Exam(StatesGroup):
+class FSMExam(StatesGroup):
     document = State()
     confirm = State()
     calls = State()
